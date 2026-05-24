@@ -283,6 +283,130 @@
   .sec-news .news-feat-year { color: #4ade80; }
   .sec-news .news-feat-left { background: rgba(74,222,128,0.06); }
   .sec-news .news-card:hover { border-color: rgba(74,222,128,0.35); }
+
+  /* 햄버거 메뉴 */
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; z-index: 200; }
+  .hamburger span { display: block; width: 26px; height: 2px; background: var(--lime); border-radius: 2px; transition: all 0.3s; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-menu { display: none; position: fixed; top: 64px; left: 0; right: 0; background: rgba(13,27,62,0.98); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(198,241,53,0.2); z-index: 99; padding: 20px 0; }
+  .mobile-menu.open { display: block; }
+  .mobile-menu a { display: block; padding: 14px 32px; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.05); transition: color 0.2s; }
+  .mobile-menu a:hover { color: var(--lime); }
+  .mobile-menu a.ocst-link { color: var(--lime); margin-top: 8px; border: none; }
+
+  /* 태블릿 (1024px 이하) */
+  @media (max-width: 1024px) {
+    nav { padding: 14px 32px; }
+    .nav-links { gap: 18px; }
+    .nav-links a { font-size: 11px; }
+    section { padding: 72px 40px; }
+    .hero { padding: 100px 40px 60px; }
+    .hero h1 { font-size: 68px; }
+    .hero-desc { font-size: 17px; }
+    .hero-desc2 { font-size: 15px; }
+    .hero-list li { font-size: 15px; }
+    .hero-robot svg { width: 300px; height: 440px; }
+    .stats { padding: 0 40px; }
+    .services-grid { grid-template-columns: 1fr; gap: 2px; }
+    .solutions-grid { grid-template-columns: repeat(2, 1fr); }
+    .fields-grid { grid-template-columns: repeat(2, 1fr); }
+    .projects-grid { grid-template-columns: 1fr; }
+    .members-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-inner { grid-template-columns: 1fr 1fr; }
+    .footer-inner > div:first-child { grid-column: 1 / -1; }
+    .about-text p { font-size: 17px; }
+    .section-sub { font-size: 17px; }
+  }
+
+  /* 모바일 (768px 이하) */
+  @media (max-width: 768px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+
+    .hero { padding: 90px 20px 52px; min-height: auto; }
+    .hero-inner { grid-template-columns: 1fr; gap: 32px; }
+    .hero-robot { order: -1; }
+    .hero-robot svg { width: 240px; height: 350px; }
+    .hero h1 { font-size: 52px; }
+    .hero-desc { font-size: 16px; }
+    .hero-desc2 { font-size: 15px; }
+    .hero-list li { font-size: 15px; }
+    .hero-btns { flex-direction: column; gap: 10px; }
+    .btn-lime, .btn-outline { text-align: center; padding: 14px 24px; font-size: 14px; }
+    .hero-slogan { font-size: 14px; letter-spacing: 3px; margin-top: 32px; }
+
+    .stats { padding: 0 20px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-num { font-size: 44px; }
+    .stat-label { font-size: 12px; }
+
+    section { padding: 56px 20px; }
+    .section-title { font-size: 40px; }
+    .section-sub { font-size: 16px; }
+
+    .about-grid { grid-template-columns: 1fr; gap: 32px; }
+    .about-visual { display: none; }
+    .about-text p { font-size: 16px; }
+    .values-grid { grid-template-columns: 1fr; gap: 2px; }
+    .value-title { font-size: 16px; }
+    .value-desc { font-size: 15px; }
+
+    .services-grid { grid-template-columns: 1fr; gap: 2px; }
+    .service-title { font-size: 19px; }
+    .service-list li { font-size: 16px; }
+
+    .solutions-grid { grid-template-columns: 1fr; }
+    .solution-title { font-size: 18px; }
+    .solution-desc { font-size: 15px; }
+
+    .fields-grid { grid-template-columns: 1fr; gap: 12px; }
+    .field-title { font-size: 17px; }
+    .field-desc { font-size: 15px; }
+
+    .projects-grid { grid-template-columns: 1fr; }
+    .project-title { font-size: 17px; }
+    .project-desc { font-size: 15px; }
+    .project-result { font-size: 14px; }
+
+    .pub-card { grid-template-columns: 60px 1fr; gap: 16px; padding: 18px 16px; }
+    .pub-year-num { font-size: 32px; }
+    .pub-title { font-size: 15px; }
+    .pub-authors { font-size: 13px; }
+    .pub-venue { font-size: 13px; }
+
+    .members-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .member-name { font-size: 16px; }
+    .member-role { font-size: 14px; }
+
+    .advisory-table thead th { font-size: 12px; padding: 12px 10px; }
+    .advisory-table tbody td { font-size: 14px; padding: 12px 10px; }
+    .univ-badge { font-size: 12px; padding: 3px 8px; }
+    .adv-icon { display: none; }
+
+    .news-grid { grid-template-columns: 1fr; }
+    .news-card-feat { grid-template-columns: 1fr; }
+    .news-feat-left { padding: 20px; flex-direction: row; gap: 16px; justify-content: flex-start; }
+    .news-feat-right { padding: 20px; }
+    .news-title { font-size: 17px; }
+    .news-sub { font-size: 15px; }
+
+    .footer-inner { grid-template-columns: 1fr; gap: 28px; }
+    .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+    .footer-info { font-size: 13px; }
+    .footer-col a { font-size: 14px; }
+  }
+
+  /* 소형 모바일 (480px 이하) */
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 42px; }
+    .hero-robot svg { width: 200px; height: 290px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .members-grid { grid-template-columns: 1fr 1fr; }
+    .section-title { font-size: 34px; }
+  }
 </style>
 </head>
 <body>
@@ -301,7 +425,24 @@
     <li><a href="http://www.ocst.co.kr" style="color:var(--lime);border:1px solid rgba(198,241,53,0.4);padding:5px 12px;border-radius:2px;">OCST 홈페이지</a></li>
     <li><a href="http://www.ocst.co.kr" target="_blank" style="color:var(--lime);border:1px solid rgba(198,241,53,0.4);padding:5px 12px;border-radius:2px;">OCST 홈페이지 ↗</a></li>
   </ul>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
 </nav>
+
+<!-- 모바일 메뉴 -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#home" onclick="closeMenu()">Home</a>
+  <a href="#about" onclick="closeMenu()">About</a>
+  <a href="#services" onclick="closeMenu()">Services</a>
+  <a href="#solutions" onclick="closeMenu()">Solutions</a>
+  <a href="#projects" onclick="closeMenu()">Projects</a>
+  <a href="#publications" onclick="closeMenu()">Publications</a>
+  <a href="#members" onclick="closeMenu()">구성원</a>
+  <a href="#news" onclick="closeMenu()">소식</a>
+  <a href="http://www.ocst.co.kr" class="ocst-link" onclick="closeMenu()">OCST 홈페이지</a>
+  <a href="http://www.ocst.co.kr" target="_blank" class="ocst-link" onclick="closeMenu()">OCST 홈페이지 ↗</a>
+</div>
 
 <section class="hero" id="home">
   <div class="hero-bg"></div>
@@ -731,5 +872,19 @@
   </div>
 </footer>
 
+<script>
+  function toggleMenu() {
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  }
+  function closeMenu() {
+    document.getElementById('hamburger').classList.remove('open');
+    document.getElementById('mobileMenu').classList.remove('open');
+  }
+  // 스크롤 시 메뉴 닫기
+  window.addEventListener('scroll', closeMenu);
+</script>
 </body>
 </html>
