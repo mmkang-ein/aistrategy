@@ -14,314 +14,200 @@
     --lime-dark: #a8d420;
     --white: #ffffff;
     --gray: #a0aec0;
-    --gray-light: #e2e8f0;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   html { scroll-behavior: smooth; }
-
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: var(--navy);
-    color: var(--white);
-    overflow-x: hidden;
-  }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--navy); color: var(--white); overflow-x: hidden; }
 
   /* NAV */
   nav {
     position: fixed; top: 0; width: 100%; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 60px;
-    background: rgba(13, 27, 62, 0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(198, 241, 53, 0.15);
+    padding: 16px 60px;
+    background: rgba(13,27,62,0.96);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(198,241,53,0.15);
   }
-  .nav-logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px; letter-spacing: 2px;
-    color: var(--white);
-  }
+  .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--white); }
   .nav-logo span { color: var(--lime); }
-  .nav-links { display: flex; gap: 36px; list-style: none; }
-  .nav-links a {
-    font-size: 13px; font-weight: 300; letter-spacing: 1px;
-    color: var(--gray); text-decoration: none;
-    text-transform: uppercase; transition: color 0.2s;
-  }
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a { font-size: 12px; font-weight: 300; letter-spacing: 1px; color: var(--gray); text-decoration: none; text-transform: uppercase; transition: color 0.2s; }
   .nav-links a:hover { color: var(--lime); }
 
   /* HERO */
-  .hero {
-    min-height: 100vh;
-    display: flex; align-items: center;
-    padding: 120px 60px 80px;
-    position: relative; overflow: hidden;
-  }
-  .hero-bg {
-    position: absolute; right: -80px; top: 50%;
-    transform: translateY(-50%);
-    width: 600px; height: 600px; opacity: 0.18;
-  }
+  .hero { min-height: 100vh; display: flex; align-items: center; padding: 120px 60px 80px; position: relative; overflow: hidden; }
+  .hero-bg { position: absolute; right: -60px; top: 50%; transform: translateY(-50%); width: 560px; height: 560px; opacity: 0.18; }
   .hero-content { max-width: 680px; position: relative; z-index: 2; }
-  .hero-badge {
-    display: inline-block;
-    border: 1px solid var(--lime);
-    color: var(--lime);
-    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
-    padding: 6px 16px; border-radius: 2px;
-    margin-bottom: 28px;
-  }
-  .hero h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 80px; line-height: 0.95; letter-spacing: 2px;
-    margin-bottom: 28px;
-  }
+  .hero-badge { display: inline-block; border: 1px solid var(--lime); color: var(--lime); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; padding: 6px 16px; border-radius: 2px; margin-bottom: 28px; }
+  .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: 76px; line-height: 0.95; letter-spacing: 2px; margin-bottom: 28px; }
   .hero h1 .lime { color: var(--lime); }
-  .hero-desc {
-    font-size: 15px; font-weight: 300; line-height: 1.9;
-    color: #c8d4e8; margin-bottom: 24px; max-width: 560px;
-  }
-  .hero-desc2 {
-    font-size: 14px; font-weight: 300; line-height: 1.8;
-    color: #8fa0bc; margin-bottom: 32px; max-width: 560px;
-  }
-  .hero-list { list-style: none; margin-bottom: 40px; }
-  .hero-list li {
-    font-size: 14px; font-weight: 300; color: #c8d4e8;
-    padding: 6px 0; padding-left: 18px; position: relative;
-  }
-  .hero-list li::before {
-    content: ''; position: absolute; left: 0; top: 50%;
-    transform: translateY(-50%);
-    width: 6px; height: 6px; background: var(--lime); border-radius: 50%;
-  }
+  .hero-desc { font-size: 15px; font-weight: 300; line-height: 1.9; color: #c8d4e8; margin-bottom: 20px; max-width: 560px; }
+  .hero-desc2 { font-size: 14px; font-weight: 300; line-height: 1.8; color: #8fa0bc; margin-bottom: 28px; max-width: 560px; }
+  .hero-list { list-style: none; margin-bottom: 36px; }
+  .hero-list li { font-size: 14px; font-weight: 300; color: #c8d4e8; padding: 5px 0 5px 18px; position: relative; }
+  .hero-list li::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; background: var(--lime); border-radius: 50%; }
   .hero-btns { display: flex; gap: 14px; }
-  .btn-lime {
-    background: var(--lime); color: var(--navy);
-    font-size: 13px; font-weight: 700; letter-spacing: 1px;
-    padding: 13px 32px; border: none; cursor: pointer;
-    text-transform: uppercase; transition: background 0.2s;
-    text-decoration: none; display: inline-block;
-  }
+  .btn-lime { background: var(--lime); color: var(--navy); font-size: 13px; font-weight: 700; letter-spacing: 1px; padding: 13px 32px; border: none; cursor: pointer; text-transform: uppercase; text-decoration: none; display: inline-block; transition: background 0.2s; }
   .btn-lime:hover { background: var(--lime-dark); }
-  .btn-outline {
-    background: transparent; color: var(--lime);
-    font-size: 13px; font-weight: 400; letter-spacing: 1px;
-    padding: 13px 32px; border: 1px solid var(--lime);
-    cursor: pointer; text-transform: uppercase; transition: all 0.2s;
-    text-decoration: none; display: inline-block;
-  }
+  .btn-outline { background: transparent; color: var(--lime); font-size: 13px; font-weight: 400; letter-spacing: 1px; padding: 13px 32px; border: 1px solid var(--lime); cursor: pointer; text-transform: uppercase; text-decoration: none; display: inline-block; transition: all 0.2s; }
   .btn-outline:hover { background: rgba(198,241,53,0.08); }
-  .hero-slogan {
-    margin-top: 60px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px; letter-spacing: 4px;
-    color: var(--lime); opacity: 0.7;
-  }
+  .hero-slogan { margin-top: 56px; font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 4px; color: var(--lime); opacity: 0.7; }
 
   /* STATS */
-  .stats {
-    background: var(--navy-light);
-    border-top: 1px solid rgba(198,241,53,0.15);
-    border-bottom: 1px solid rgba(198,241,53,0.15);
-    padding: 48px 60px;
-  }
-  .stats-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 0;
-  }
-  .stat-item {
-    text-align: center; padding: 20px;
-    border-right: 1px solid rgba(255,255,255,0.08);
-  }
-  .stat-item:last-child { border-right: none; }
-  .stat-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 52px; color: var(--lime); line-height: 1;
-    margin-bottom: 8px;
-  }
-  .stat-label { font-size: 12px; font-weight: 300; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; }
+  .stats { padding: 0 60px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(198,241,53,0.1); border: 1px solid rgba(198,241,53,0.15); }
+  .stat-item { background: var(--navy-light); text-align: center; padding: 36px 20px; position: relative; overflow: hidden; transition: background 0.3s; }
+  .stat-item::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: var(--lime); transform: scaleX(0); transition: transform 0.3s; }
+  .stat-item:hover::after { transform: scaleX(1); }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 54px; color: var(--lime); line-height: 1; margin-bottom: 8px; }
+  .stat-label { font-size: 11px; font-weight: 300; color: var(--gray); letter-spacing: 2px; text-transform: uppercase; }
 
   /* SECTION COMMON */
-  section { padding: 90px 60px; }
-  .section-header { margin-bottom: 52px; }
-  .section-tag {
-    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--lime); margin-bottom: 12px;
-  }
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 48px; letter-spacing: 1px; line-height: 1.1;
-  }
-  .section-sub {
-    font-size: 14px; font-weight: 300; color: #8fa0bc;
-    margin-top: 10px; line-height: 1.7;
-  }
+  section { padding: 88px 60px; }
+  .section-alt { background: var(--navy-mid); }
+  .section-header { margin-bottom: 48px; }
+  .section-tag { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--lime); margin-bottom: 10px; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 46px; letter-spacing: 1px; line-height: 1.1; }
+  .section-sub { font-size: 14px; font-weight: 300; color: #8fa0bc; margin-top: 12px; line-height: 1.8; max-width: 600px; }
+  .lime-line { width: 48px; height: 3px; background: var(--lime); margin: 14px 0 0; }
 
   /* ABOUT */
-  .about { background: var(--navy-mid); }
   .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-  .about-text p {
-    font-size: 14px; font-weight: 300; color: #c8d4e8;
-    line-height: 1.9; margin-bottom: 16px;
-  }
+  .about-text p { font-size: 14px; font-weight: 300; color: #c8d4e8; line-height: 1.9; margin-bottom: 16px; }
   .about-text strong { color: var(--white); font-weight: 500; }
-  .values-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
-  .value-card {
-    background: rgba(198,241,53,0.06);
-    border: 1px solid rgba(198,241,53,0.2);
-    padding: 20px; border-radius: 2px;
-  }
-  .value-title { font-size: 13px; font-weight: 700; color: var(--lime); margin-bottom: 6px; }
+  .values-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 28px; }
+  .value-card { background: rgba(198,241,53,0.05); border-left: 3px solid var(--lime); padding: 18px 20px; transition: background 0.2s; }
+  .value-card:hover { background: rgba(198,241,53,0.1); }
+  .value-title { font-size: 13px; font-weight: 700; color: var(--lime); margin-bottom: 5px; }
   .value-desc { font-size: 12px; font-weight: 300; color: #8fa0bc; line-height: 1.6; }
-  .about-visual {
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0.3;
-  }
+  .about-visual { display: flex; align-items: center; justify-content: center; opacity: 0.28; }
 
   /* SERVICES */
-  .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .service-card {
-    background: var(--navy-light);
-    border: 1px solid rgba(255,255,255,0.07);
-    padding: 36px 28px;
-    position: relative; overflow: hidden;
-    transition: border-color 0.3s;
-  }
-  .service-card:hover { border-color: rgba(198,241,53,0.4); }
-  .service-card::before {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 3px; height: 0; background: var(--lime);
-    transition: height 0.3s;
-  }
-  .service-card:hover::before { height: 100%; }
-  .service-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 48px; color: rgba(198,241,53,0.12);
-    line-height: 1; margin-bottom: 20px;
-  }
-  .service-title { font-size: 16px; font-weight: 500; margin-bottom: 14px; }
+  .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .service-card { background: var(--navy-light); padding: 40px 30px; position: relative; overflow: hidden; transition: background 0.3s; }
+  .service-card:hover { background: #243561; }
+  .service-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--lime); }
+  .service-num { font-family: 'Bebas Neue', sans-serif; font-size: 64px; color: rgba(198,241,53,0.08); line-height: 1; position: absolute; top: 16px; right: 24px; }
+  .service-icon { font-size: 28px; margin-bottom: 18px; }
+  .service-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--white); }
   .service-list { list-style: none; }
-  .service-list li {
-    font-size: 13px; font-weight: 300; color: #8fa0bc;
-    padding: 5px 0; padding-left: 14px; position: relative; line-height: 1.6;
-  }
-  .service-list li::before {
-    content: '—'; position: absolute; left: 0;
-    color: var(--lime); font-size: 10px;
-  }
+  .service-list li { font-size: 13px; font-weight: 300; color: #8fa0bc; padding: 6px 0 6px 16px; position: relative; line-height: 1.6; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .service-list li:last-child { border-bottom: none; }
+  .service-list li::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 5px; height: 5px; background: var(--lime); border-radius: 50%; }
+
+  /* SOLUTIONS */
+  .solutions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .solution-card { background: var(--navy-light); border-radius: 2px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s, border-color 0.3s; }
+  .solution-card:hover { transform: translateY(-6px); border-color: rgba(198,241,53,0.35); }
+  .solution-thumb { height: 140px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .solution-thumb.ocr { background: linear-gradient(135deg, #0d2744 0%, #1a3a5c 100%); }
+  .solution-thumb.track { background: linear-gradient(135deg, #0d3322 0%, #1a5c40 100%); }
+  .solution-thumb.defect { background: linear-gradient(135deg, #2d0d44 0%, #4a1a5c 100%); }
+  .solution-kpi { position: absolute; bottom: 10px; right: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--lime); opacity: 0.5; }
+  .solution-body { padding: 22px; }
+  .solution-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .solution-desc { font-size: 13px; font-weight: 300; color: #8fa0bc; line-height: 1.7; margin-bottom: 14px; }
+  .solution-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 10px; letter-spacing: 0.5px; background: rgba(198,241,53,0.1); color: var(--lime); padding: 3px 10px; border-radius: 100px; }
 
   /* RESEARCH FIELDS */
-  .fields { background: var(--navy-mid); }
   .fields-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .field-card {
-    background: var(--navy);
-    border: 1px solid rgba(255,255,255,0.07);
-    padding: 28px 24px;
-    transition: all 0.3s;
-  }
-  .field-card:hover {
-    background: rgba(198,241,53,0.05);
-    border-color: rgba(198,241,53,0.3);
-    transform: translateY(-3px);
-  }
-  .field-icon { font-size: 26px; margin-bottom: 14px; }
-  .field-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
-  .field-desc { font-size: 13px; font-weight: 300; color: #8fa0bc; line-height: 1.6; }
+  .field-card { background: var(--navy); border: 1px solid rgba(255,255,255,0.06); padding: 30px 24px; transition: all 0.3s; position: relative; overflow: hidden; }
+  .field-card::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: var(--lime); transition: width 0.4s; }
+  .field-card:hover { border-color: rgba(198,241,53,0.25); transform: translateY(-4px); }
+  .field-card:hover::after { width: 100%; }
+  .field-icon-wrap { width: 48px; height: 48px; background: rgba(198,241,53,0.08); border: 1px solid rgba(198,241,53,0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 22px; }
+  .field-title { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--white); }
+  .field-desc { font-size: 13px; font-weight: 300; color: #8fa0bc; line-height: 1.7; }
+
+  /* PROJECTS */
+  .projects-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .project-card { background: var(--navy); border: 1px solid rgba(255,255,255,0.07); padding: 28px; transition: border-color 0.3s; position: relative; }
+  .project-card:hover { border-color: rgba(198,241,53,0.3); }
+  .project-type-badge { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--navy); background: var(--lime); padding: 3px 10px; font-weight: 700; display: inline-block; margin-bottom: 14px; }
+  .project-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; color: var(--white); }
+  .project-desc { font-size: 13px; font-weight: 300; color: #8fa0bc; line-height: 1.7; margin-bottom: 16px; }
+  .project-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .project-tag { font-size: 10px; background: rgba(255,255,255,0.06); color: #c8d4e8; padding: 3px 10px; border-radius: 2px; }
+  .project-result { font-size: 12px; color: var(--lime); border-left: 3px solid var(--lime); padding: 8px 12px; background: rgba(198,241,53,0.05); line-height: 1.6; }
+  .project-result-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: rgba(198,241,53,0.6); margin-bottom: 3px; }
+
+  /* PUBLICATIONS */
+  .pub-list { display: flex; flex-direction: column; gap: 16px; }
+  .pub-card { background: var(--navy); border: 1px solid rgba(255,255,255,0.07); padding: 24px 28px; display: grid; grid-template-columns: 80px 1fr; gap: 24px; align-items: start; transition: border-color 0.3s; }
+  .pub-card:hover { border-color: rgba(198,241,53,0.25); }
+  .pub-year-col { text-align: center; }
+  .pub-year-num { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--lime); line-height: 1; }
+  .pub-type-badge { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); margin-top: 4px; display: block; }
+  .pub-title { font-size: 14px; font-weight: 700; margin-bottom: 8px; line-height: 1.5; color: var(--white); }
+  .pub-authors { font-size: 12px; font-weight: 300; color: #8fa0bc; margin-bottom: 5px; line-height: 1.6; }
+  .pub-venue { font-size: 12px; font-weight: 300; color: var(--gray); font-style: italic; margin-bottom: 12px; }
+  .pub-link { font-size: 12px; color: var(--lime); text-decoration: none; font-weight: 500; }
+  .pub-link:hover { text-decoration: underline; }
 
   /* MEMBERS */
   .members-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  .member-card {
-    background: var(--navy-light);
-    border: 1px solid rgba(255,255,255,0.07);
-    padding: 28px 20px; text-align: center;
-    transition: border-color 0.3s;
-  }
-  .member-card:hover { border-color: rgba(198,241,53,0.3); }
-  .avatar {
-    width: 60px; height: 60px; border-radius: 50%;
-    background: rgba(198,241,53,0.15);
-    border: 1px solid rgba(198,241,53,0.3);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 500; color: var(--lime);
-    margin: 0 auto 14px;
-  }
-  .member-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
-  .member-role { font-size: 12px; font-weight: 300; color: var(--gray); margin-bottom: 10px; }
-  .member-tag {
-    display: inline-block; font-size: 10px; letter-spacing: 1px;
-    text-transform: uppercase; color: var(--lime);
-    border: 1px solid rgba(198,241,53,0.3);
-    padding: 3px 10px;
-  }
+  .member-card { background: var(--navy-light); border: 1px solid rgba(255,255,255,0.07); padding: 28px 20px; text-align: center; transition: all 0.3s; position: relative; overflow: hidden; }
+  .member-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--lime); transform: scaleX(0); transition: transform 0.3s; }
+  .member-card:hover { border-color: rgba(198,241,53,0.3); transform: translateY(-4px); }
+  .member-card:hover::before { transform: scaleX(1); }
+  .member-avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(198,241,53,0.08); border: 1px solid rgba(198,241,53,0.25); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .member-avatar svg { width: 30px; height: 30px; opacity: 0.65; }
+  .member-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .member-role { font-size: 12px; font-weight: 300; color: var(--gray); margin-bottom: 12px; }
+  .member-tag { display: inline-block; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--lime); border: 1px solid rgba(198,241,53,0.35); padding: 3px 12px; }
+
+  /* ADVISORY TABLE */
+  .advisory-table { width: 100%; border-collapse: collapse; }
+  .advisory-table thead tr { background: rgba(198,241,53,0.08); border-bottom: 2px solid rgba(198,241,53,0.3); }
+  .advisory-table thead th { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--lime); padding: 14px 20px; text-align: left; font-weight: 500; }
+  .advisory-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; }
+  .advisory-table tbody tr:hover { background: rgba(198,241,53,0.04); }
+  .advisory-table tbody td { padding: 14px 20px; font-size: 13px; font-weight: 300; color: #c8d4e8; vertical-align: middle; }
+  .advisory-table tbody td:first-child { font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: rgba(198,241,53,0.4); width: 44px; }
+  .advisory-table tbody td:nth-child(2) { font-weight: 500; color: var(--white); }
+  .adv-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(198,241,53,0.08); border: 1px solid rgba(198,241,53,0.2); margin-right: 8px; vertical-align: middle; }
+  .adv-icon svg { width: 14px; height: 14px; }
+  .univ-badge { display: inline-block; font-size: 11px; background: rgba(255,255,255,0.06); color: #c8d4e8; padding: 3px 10px; border-radius: 2px; }
 
   /* NEWS */
-  .news { background: var(--navy-mid); }
-  .news-list { display: flex; flex-direction: column; gap: 1px; }
-  .news-item {
-    display: flex; align-items: center; gap: 28px;
-    background: var(--navy);
-    border: 1px solid rgba(255,255,255,0.06);
-    padding: 20px 28px;
-    transition: background 0.2s;
-  }
-  .news-item:hover { background: rgba(198,241,53,0.04); }
-  .news-date { font-size: 11px; color: var(--gray); min-width: 80px; letter-spacing: 0.5px; }
-  .news-badge {
-    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
-    padding: 3px 10px; border-radius: 1px; min-width: 54px; text-align: center;
-  }
-  .badge-recruit { background: rgba(198,241,53,0.15); color: var(--lime); }
+  .news-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .news-card { background: var(--navy); border: 1px solid rgba(255,255,255,0.07); border-radius: 2px; padding: 24px; transition: all 0.3s; }
+  .news-card:hover { border-color: rgba(198,241,53,0.3); transform: translateY(-3px); }
+  .news-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .news-badge { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 4px 12px; font-weight: 700; }
   .badge-paper { background: rgba(99,153,240,0.15); color: #82aaff; }
   .badge-award { background: rgba(255,180,60,0.15); color: #ffc85e; }
-  .news-title { font-size: 14px; font-weight: 400; flex: 1; }
-  .news-sub { font-size: 12px; font-weight: 300; color: #8fa0bc; margin-top: 3px; }
+  .badge-recruit { background: rgba(198,241,53,0.15); color: var(--lime); }
+  .badge-seminar { background: rgba(160,100,240,0.15); color: #c084fc; }
+  .badge-pending { background: rgba(255,255,255,0.06); color: var(--gray); }
+  .news-date { font-size: 11px; color: var(--gray); }
+  .news-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; }
+  .news-sub { font-size: 13px; font-weight: 300; color: #8fa0bc; line-height: 1.7; }
+  .news-card-feat { grid-column: 1 / -1; display: grid; grid-template-columns: 160px 1fr; border-left: 4px solid var(--lime); }
+  .news-feat-left { background: rgba(198,241,53,0.06); padding: 28px 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+  .news-feat-icon { font-size: 36px; margin-bottom: 10px; }
+  .news-feat-year { font-family: 'Bebas Neue', sans-serif; font-size: 38px; color: var(--lime); line-height: 1; }
+  .news-feat-label { font-size: 10px; letter-spacing: 2px; color: rgba(198,241,53,0.5); margin-top: 4px; text-transform: uppercase; }
+  .news-feat-right { padding: 28px; }
+  .news-pending { opacity: 0.4; border-style: dashed !important; }
+  .news-pending:hover { transform: none !important; }
+  .news-pending .news-title { color: var(--gray); }
 
   /* FOOTER */
-  footer {
-    background: #080f24;
-    border-top: 1px solid rgba(198,241,53,0.15);
-    padding: 48px 60px;
-  }
-  .footer-inner {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 32px;
-  }
-  .footer-logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px; letter-spacing: 2px; color: var(--white);
-    margin-bottom: 12px;
-  }
+  footer { background: #080f24; border-top: 1px solid rgba(198,241,53,0.15); padding: 52px 60px; }
+  .footer-inner { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 36px; }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--white); margin-bottom: 14px; }
   .footer-logo span { color: var(--lime); }
-  .footer-info { font-size: 12px; font-weight: 300; color: #4a5a7a; line-height: 1.9; }
-  .footer-links { display: flex; gap: 24px; }
-  .footer-links a { font-size: 12px; color: #4a5a7a; text-decoration: none; letter-spacing: 0.5px; }
-  .footer-links a:hover { color: var(--lime); }
-  .footer-bottom {
-    border-top: 1px solid rgba(255,255,255,0.06);
-    padding-top: 20px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .footer-slogan {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 14px; letter-spacing: 4px; color: rgba(198,241,53,0.4);
-  }
+  .footer-info { font-size: 12px; font-weight: 300; color: #4a5a7a; line-height: 2; }
+  .footer-col-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--lime); margin-bottom: 16px; }
+  .footer-col a { display: block; font-size: 12px; color: #4a5a7a; text-decoration: none; margin-bottom: 8px; transition: color 0.2s; }
+  .footer-col a:hover { color: var(--lime); }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 22px; display: flex; justify-content: space-between; align-items: center; }
+  .footer-slogan { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 4px; color: rgba(198,241,53,0.4); }
   .footer-copy { font-size: 11px; color: #4a5a7a; }
 
-  /* DIVIDER */
-  .lime-line {
-    width: 48px; height: 3px; background: var(--lime);
-    margin: 16px 0 0;
-  }
-
-  /* WIREFRAME SVG */
-  .wireframe { width: 100%; height: 100%; }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
   .hero-content > * { animation: fadeUp 0.7s ease both; }
   .hero-content > *:nth-child(1) { animation-delay: 0.1s; }
   .hero-content > *:nth-child(2) { animation-delay: 0.2s; }
@@ -334,23 +220,23 @@
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <div class="nav-logo"><span>AI</span> Strategy Research Institute</div>
   <ul class="nav-links">
     <li><a href="#home">Home</a></li>
-    <li><a href="#about">About Us</a></li>
+    <li><a href="#about">About</a></li>
     <li><a href="#services">Services</a></li>
-    <li><a href="#research">연구 분야</a></li>
+    <li><a href="#solutions">Solutions</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#publications">Publications</a></li>
     <li><a href="#members">구성원</a></li>
     <li><a href="#news">소식</a></li>
   </ul>
 </nav>
 
-<!-- HERO -->
 <section class="hero" id="home">
   <div class="hero-bg">
-    <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" class="wireframe">
+    <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
       <g fill="none" stroke="#c6f135" stroke-width="0.8">
         <ellipse cx="250" cy="250" rx="240" ry="240"/>
         <ellipse cx="250" cy="250" rx="240" ry="80"/>
@@ -370,7 +256,7 @@
     <div class="hero-badge">기업 부설 연구원 · (주)OCST</div>
     <h1><span class="lime">AI Strategy</span><br>Research Institute</h1>
     <p class="hero-desc">AI 전략 연구원은 인공지능 기술의 전략적 활용을 통해<br>공공기관과 민간 기업의 혁신을 지원하는 전문 연구기관입니다.</p>
-    <p class="hero-desc2">우리는 급변하는 디지털 환경 속에서 신뢰할 수 있는 AI 도입 전략과 운영 방향을 제시하며,<br>기술의 사회적 책임과 거버넌스까지 고려한 통합적 AI 전략 컨설팅을 제공합니다.</p>
+    <p class="hero-desc2">검증된 AI 연구 성과를 실제 산업 문제 해결로 연결하며, 복잡한 운영 환경에서도 신뢰할 수 있는 산업용 AI 솔루션을 제공합니다.</p>
     <ul class="hero-list">
       <li>기업 및 공공기관 대상 AI 전략 수립 및 기술 자문</li>
       <li>스마트시티, 스마트팩토리, 교육 분야에서의 적용 컨설팅</li>
@@ -378,37 +264,23 @@
       <li>최신 AI 트렌드를 반영한 전문 교육 및 세미나 운영</li>
     </ul>
     <div class="hero-btns">
-      <a href="#services" class="btn-lime">서비스 보기</a>
-      <a href="#news" class="btn-outline">기술동향</a>
+      <a href="#solutions" class="btn-lime">솔루션 보기</a>
+      <a href="#publications" class="btn-outline">연구 성과</a>
     </div>
     <div class="hero-slogan">AI is Strategy. We Design It.</div>
   </div>
 </section>
 
-<!-- STATS -->
 <div class="stats">
   <div class="stats-grid">
-    <div class="stat-item">
-      <div class="stat-num">47</div>
-      <div class="stat-label">연구 인력</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">128</div>
-      <div class="stat-label">논문 · 특허</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">23</div>
-      <div class="stat-label">진행 프로젝트</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">2015</div>
-      <div class="stat-label">설립 연도</div>
-    </div>
+    <div class="stat-item"><div class="stat-num">25</div><div class="stat-label">연구 인력</div></div>
+    <div class="stat-item"><div class="stat-num">50+</div><div class="stat-label">연구 프로젝트</div></div>
+    <div class="stat-item"><div class="stat-num">20+</div><div class="stat-label">실증 배포</div></div>
+    <div class="stat-item"><div class="stat-num">15+</div><div class="stat-label">산업 파트너</div></div>
   </div>
 </div>
 
-<!-- ABOUT -->
-<section class="about" id="about">
+<section class="section-alt" id="about">
   <div class="about-grid">
     <div>
       <div class="section-header">
@@ -417,30 +289,18 @@
         <div class="lime-line"></div>
       </div>
       <div class="about-text">
-        <p>AI 전략 연구원은 인공지능(AI)이 모든 산업과 사회 구조를 재편하는 시대에 대응하여,<br><strong>기술·정책·윤리를 아우르는 통합적 전략 수립</strong>을 목표로 하는 전문 연구기관입니다.</p>
-        <p>우리는 단순한 기술 도입을 넘어, AI의 사회적 파급력과 지속가능성을 고려한 전략을 설계합니다. 대규모 언어모델(LLM), 생성형 AI, 멀티모달 인공지능, AI 거버넌스 등 <strong>최신 글로벌 기술 트렌드</strong>를 실시간으로 반영하며, 정부기관과 민간기업이 실질적인 AI 활용 전략을 수립할 수 있도록 연구·자문·교육을 제공합니다.</p>
+        <p>AI 전략 연구원은 인공지능(AI)이 모든 산업과 사회 구조를 재편하는 시대에 대응하여, <strong>기술·정책·윤리를 아우르는 통합적 전략 수립</strong>을 목표로 하는 전문 연구기관입니다.</p>
+        <p>우리는 단순한 기술 도입을 넘어, AI의 사회적 파급력과 지속가능성을 고려한 전략을 설계합니다. 깊이 있는 학술적 통찰과 강력한 배포 능력을 결합하여 <strong>이론에 머물지 않고 실제적인 변화를 주도</strong>하는 독보적 가치를 창출합니다.</p>
       </div>
       <div class="values-grid">
-        <div class="value-card">
-          <div class="value-title">전략중심</div>
-          <div class="value-desc">기술 중심에서 벗어나, 조직 맞춤형 AI 전략 수립</div>
-        </div>
-        <div class="value-card">
-          <div class="value-title">미래지향</div>
-          <div class="value-desc">생성형 AI, 자율 에이전트, 연합학습 등 최신 트렌드 반영</div>
-        </div>
-        <div class="value-card">
-          <div class="value-title">책임기반</div>
-          <div class="value-desc">AI 윤리, 개인정보 보호, 신뢰성 확보까지 고려한 설계</div>
-        </div>
-        <div class="value-card">
-          <div class="value-title">협력지향</div>
-          <div class="value-desc">공공기관, 스타트업, 산업계와의 실질적 협업 기반 운영</div>
-        </div>
+        <div class="value-card"><div class="value-title">⚙ 전략중심</div><div class="value-desc">기술 중심에서 벗어나, 조직 맞춤형 AI 전략 수립</div></div>
+        <div class="value-card"><div class="value-title">🔭 미래지향</div><div class="value-desc">생성형 AI, 자율 에이전트 등 최신 트렌드 반영</div></div>
+        <div class="value-card"><div class="value-title">🛡 책임기반</div><div class="value-desc">AI 윤리, 개인정보 보호, 신뢰성까지 고려한 설계</div></div>
+        <div class="value-card"><div class="value-title">🤝 협력지향</div><div class="value-desc">공공기관, 스타트업, 산업계와의 실질적 협업</div></div>
       </div>
     </div>
     <div class="about-visual">
-      <svg viewBox="0 0 400 400" width="360" height="360" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 400 400" width="340" height="340" xmlns="http://www.w3.org/2000/svg">
         <g fill="none" stroke="#c6f135" stroke-width="0.8">
           <polygon points="200,20 380,380 20,380"/>
           <polygon points="200,60 350,360 50,360"/>
@@ -456,176 +316,198 @@
   </div>
 </section>
 
-<!-- SERVICES -->
 <section id="services">
   <div class="section-header">
     <div class="section-tag">Services</div>
     <div class="section-title">AI는 선택이 아닌<br>전략입니다</div>
     <div class="lime-line"></div>
-    <p class="section-sub" style="margin-top:16px;">AI 전략 연구원은 사회 각 분야가 기술에 끌려가지 않고, 기술을 주도적으로 설계할 수 있도록 돕습니다.</p>
+    <p class="section-sub">AI 전략 연구원은 사회 각 분야가 기술에 끌려가지 않고, 기술을 주도적으로 설계할 수 있도록 돕습니다.</p>
   </div>
   <div class="services-grid">
-    <div class="service-card">
-      <div class="service-num">01</div>
-      <div class="service-title">AI 전략 자문</div>
-      <ul class="service-list">
-        <li>공공 및 민간 대상 AI 도입 로드맵 수립 및 정책 자문</li>
-        <li>AI 거버넌스 체계, 윤리 가이드라인 및 책임 있는 AI 프레임 설계</li>
-      </ul>
-    </div>
-    <div class="service-card">
-      <div class="service-num">02</div>
-      <div class="service-title">생성형 AI 컨설팅</div>
-      <ul class="service-list">
-        <li>생성형 AI의 공공/산업 적용 전략 연구</li>
-        <li>스마트 시티, 스마트 제조, 헬스케어, 교육 분야 기술 적용 컨설팅</li>
-      </ul>
-    </div>
-    <div class="service-card">
-      <div class="service-num">03</div>
-      <div class="service-title">교육 및 세미나</div>
-      <ul class="service-list">
-        <li>국내외 최신 AI 트렌드 분석 및 전문가 교육/세미나 운영</li>
-        <li>조직 맞춤형 AI 리터러시 프로그램 설계 및 운영</li>
-      </ul>
-    </div>
+    <div class="service-card"><div class="service-num">01</div><div class="service-icon">🏛️</div><div class="service-title">AI 전략 자문</div><ul class="service-list"><li>공공 및 민간 대상 AI 도입 로드맵 수립 및 정책 자문</li><li>AI 거버넌스 체계, 윤리 가이드라인 및 책임 있는 AI 프레임 설계</li><li>조직 역량 진단 및 단계별 AI 전환 전략 수립</li></ul></div>
+    <div class="service-card"><div class="service-num">02</div><div class="service-icon">🤖</div><div class="service-title">생성형 AI 컨설팅</div><ul class="service-list"><li>생성형 AI의 공공/산업 적용 전략 연구</li><li>스마트시티, 스마트 제조, 헬스케어, 교육 분야 기술 적용 컨설팅</li><li>LLM·멀티모달 AI 도입 타당성 분석 및 PoC 지원</li></ul></div>
+    <div class="service-card"><div class="service-num">03</div><div class="service-icon">📡</div><div class="service-title">교육 및 세미나</div><ul class="service-list"><li>국내외 최신 AI 트렌드 분석 및 전문가 교육/세미나 운영</li><li>조직 맞춤형 AI 리터러시 프로그램 설계 및 운영</li><li>임원·정책 결정자 대상 AI 전략 워크숍 진행</li></ul></div>
   </div>
 </section>
 
-<!-- RESEARCH FIELDS -->
-<section class="fields" id="research">
+<section class="section-alt" id="solutions">
   <div class="section-header">
-    <div class="section-tag">Research</div>
+    <div class="section-tag">Solutions</div>
+    <div class="section-title">산업용 AI 솔루션</div>
+    <div class="lime-line"></div>
+    <p class="section-sub">실제 산업 현장에 최적화된 실무형 AI 솔루션으로 측정 가능한 비즈니스 가치를 창출합니다.</p>
+  </div>
+  <div class="solutions-grid">
+    <div class="solution-card"><div class="solution-thumb ocr"><svg width="80" height="80" viewBox="0 0 80 80" fill="none"><rect x="10" y="20" width="60" height="40" rx="2" stroke="#c6f135" stroke-width="1.2"/><line x1="20" y1="35" x2="60" y2="35" stroke="#c6f135" stroke-width="1"/><line x1="20" y1="45" x2="50" y2="45" stroke="#c6f135" stroke-width="1"/><circle cx="62" cy="18" r="10" stroke="#c6f135" stroke-width="1.2"/><line x1="69" y1="25" x2="76" y2="32" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg><div class="solution-kpi">99%+</div></div><div class="solution-body"><div class="solution-title">Industrial OCR Solution</div><div class="solution-desc">금속 부품의 각인 정보를 다양한 각도에서도 정확하게 인식하는 회전 불변 산업용 OCR 기술.</div><div class="solution-chips"><span class="chip">Manufacturing</span><span class="chip">Traceability</span><span class="chip">Edge AI</span></div></div></div>
+    <div class="solution-card"><div class="solution-thumb track"><svg width="80" height="80" viewBox="0 0 80 80" fill="none"><rect x="8" y="8" width="20" height="20" rx="1" stroke="#c6f135" stroke-width="1.2"/><rect x="52" y="8" width="20" height="20" rx="1" stroke="#c6f135" stroke-width="1.2"/><rect x="8" y="52" width="20" height="20" rx="1" stroke="#c6f135" stroke-width="1.2"/><rect x="52" y="52" width="20" height="20" rx="1" stroke="#c6f135" stroke-width="1.2"/><circle cx="40" cy="40" r="10" stroke="#c6f135" stroke-width="1.2"/><line x1="28" y1="18" x2="52" y2="18" stroke="#c6f135" stroke-width="0.8" stroke-dasharray="3 2"/><line x1="18" y1="28" x2="18" y2="52" stroke="#c6f135" stroke-width="0.8" stroke-dasharray="3 2"/><line x1="62" y1="28" x2="62" y2="52" stroke="#c6f135" stroke-width="0.8" stroke-dasharray="3 2"/><line x1="28" y1="62" x2="52" y2="62" stroke="#c6f135" stroke-width="0.8" stroke-dasharray="3 2"/></svg><div class="solution-kpi">98%+</div></div><div class="solution-body"><div class="solution-title">Real-Time Object Tracking</div><div class="solution-desc">물류 창고 자동화, 유통, 생산 라인 모니터링을 위한 고성능 멀티 객체 트래킹 시스템.</div><div class="solution-chips"><span class="chip">Logistics</span><span class="chip">ReID</span><span class="chip">Multi-Camera</span></div></div></div>
+    <div class="solution-card"><div class="solution-thumb defect"><svg width="80" height="80" viewBox="0 0 80 80" fill="none"><rect x="10" y="10" width="60" height="60" rx="2" stroke="#c6f135" stroke-width="1.2"/><circle cx="40" cy="40" r="16" stroke="#c6f135" stroke-width="1.2"/><path d="M32 40 L37 45 L49 33" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="10" y1="25" x2="70" y2="25" stroke="#c6f135" stroke-width="0.6" stroke-dasharray="2 3"/><line x1="10" y1="55" x2="70" y2="55" stroke="#c6f135" stroke-width="0.6" stroke-dasharray="2 3"/></svg><div class="solution-kpi">99%+</div></div><div class="solution-body"><div class="solution-title">Automated Defect Detection</div><div class="solution-desc">딥러닝 기술을 활용한 제조 전 공정 실시간 품질 검사 솔루션. 수동 검사 인건비 60~80% 절감.</div><div class="solution-chips"><span class="chip">Quality Control</span><span class="chip">Vision AI</span><span class="chip">CNN</span></div></div></div>
+  </div>
+</section>
+
+<section id="research">
+  <div class="section-header">
+    <div class="section-tag">Research Areas</div>
     <div class="section-title">핵심 연구 분야</div>
     <div class="lime-line"></div>
   </div>
   <div class="fields-grid">
-    <div class="field-card">
-      <div class="field-icon">🧠</div>
-      <div class="field-title">인공지능 / 머신러닝</div>
-      <div class="field-desc">딥러닝, 강화학습, 자연어처리 분야의 원천 기술 및 응용 연구</div>
-    </div>
-    <div class="field-card">
-      <div class="field-icon">🏛️</div>
-      <div class="field-title">AI 거버넌스 · 정책</div>
-      <div class="field-desc">AI 윤리, 규제 프레임워크, 공공 정책 연계 연구</div>
-    </div>
-    <div class="field-card">
-      <div class="field-icon">🔤</div>
-      <div class="field-title">대규모 언어모델 (LLM)</div>
-      <div class="field-desc">생성형 AI, 멀티모달 인공지능, 언어모델 응용 연구</div>
-    </div>
-    <div class="field-card">
-      <div class="field-icon">🏙️</div>
-      <div class="field-title">스마트시티 · 산업 AI</div>
-      <div class="field-desc">스마트팩토리, 스마트시티, 헬스케어 분야 AI 적용 연구</div>
-    </div>
-    <div class="field-card">
-      <div class="field-icon">🛡️</div>
-      <div class="field-title">AI 신뢰성 · 보안</div>
-      <div class="field-desc">설명 가능한 AI, 편향성 제거, 프라이버시 보호 기술</div>
-    </div>
-    <div class="field-card">
-      <div class="field-icon">📊</div>
-      <div class="field-title">데이터 사이언스</div>
-      <div class="field-desc">대용량 데이터 분석, 예측 모델링, 비즈니스 인텔리전스</div>
-    </div>
+    <div class="field-card"><div class="field-icon-wrap">🏭</div><div class="field-title">산업용 AI · 제조 자동화</div><div class="field-desc">지능형 자동화와 실시간 공정 제어 기술을 통한 생산 효율 향상</div></div>
+    <div class="field-card"><div class="field-icon-wrap">⚡</div><div class="field-title">스마트 에너지 · 전력 시스템</div><div class="field-desc">스마트 그리드 관리, ESS 최적화, 분산형 에너지 자원 통합</div></div>
+    <div class="field-card"><div class="field-icon-wrap">🔧</div><div class="field-title">예지 보전</div><div class="field-desc">IoT 센서 데이터 분석, 머신러닝 기반 고장 예측 및 상태 기반 유지보수</div></div>
+    <div class="field-card"><div class="field-icon-wrap">👁️</div><div class="field-title">컴퓨터 비전 · 품질 검사</div><div class="field-desc">딥러닝 기반 결함 탐지, 객체 추적, 산업용 OCR 기술 개발</div></div>
+    <div class="field-card"><div class="field-icon-wrap">🏛️</div><div class="field-title">AI 거버넌스 · 전략</div><div class="field-desc">AI 윤리, 규제 프레임워크, 공공·민간 AI 도입 전략 수립</div></div>
+    <div class="field-card"><div class="field-icon-wrap">🔄</div><div class="field-title">최적화 · 디지털 트윈</div><div class="field-desc">복잡한 시스템 모델링, 공급망 최적화, 시나리오 시뮬레이션</div></div>
   </div>
 </section>
 
-<!-- MEMBERS -->
-<section id="members">
+<section class="section-alt" id="projects">
+  <div class="section-header">
+    <div class="section-tag">Projects</div>
+    <div class="section-title">주요 프로젝트</div>
+    <div class="lime-line"></div>
+  </div>
+  <div class="projects-grid">
+    <div class="project-card"><span class="project-type-badge">Case Study</span><div class="project-title">Vision-Based Steel Coil Inspection</div><div class="project-desc">딥러닝 기반 컴퓨터 비전을 열간 및 냉간 압연 라인에 도입하여 스틸 코일의 표면 결함을 실시간으로 탐지하고 기존 PLC 제어 시스템과 통합.</div><div class="project-tags"><span class="project-tag">Computer Vision</span><span class="project-tag">Deep Learning</span><span class="project-tag">Edge AI</span></div><div class="project-result"><div class="project-result-label">성과</div>수동 검사 공수 40% 절감, 스크랩 발생률 대폭 감소</div></div>
+    <div class="project-card"><span class="project-type-badge">Pilot Project</span><div class="project-title">Adaptive Production Line Optimization</div><div class="project-desc">다단계 제조 라인을 위한 실시간 분석 및 최적화 계층 구축. 공정 파라미터 지속적 튜닝.</div><div class="project-tags"><span class="project-tag">Predictive Analytics</span><span class="project-tag">Time-Series</span><span class="project-tag">Real-Time Control</span></div><div class="project-result"><div class="project-result-label">성과</div>처리량 최대 12% 증가, 규격 미달 제품 발생률 8% 감소</div></div>
+    <div class="project-card"><span class="project-type-badge">Research</span><div class="project-title">Self-Healing Smart Grid Control</div><div class="project-desc">배전망 내 전력 흐름을 동적으로 재라우팅하여 고장 구간을 격리하는 강화학습 에이전트 개발.</div><div class="project-tags"><span class="project-tag">Reinforcement Learning</span><span class="project-tag">Smart Grid</span><span class="project-tag">Power Systems</span></div><div class="project-result"><div class="project-result-label">성과</div>정전 시간 45% 단축, 연쇄 고장 회복 탄력성 향상</div></div>
+    <div class="project-card"><span class="project-type-badge">Innovation</span><div class="project-title">Cross-Plant Predictive Maintenance Hub</div><div class="project-desc">여러 공장의 진동·온도·공정 데이터를 통합한 단일화된 예지 보전 플랫폼 구현.</div><div class="project-tags"><span class="project-tag">Predictive Maintenance</span><span class="project-tag">IIoT</span><span class="project-tag">Anomaly Detection</span></div><div class="project-result"><div class="project-result-label">성과</div>중요 설비 고장 30% 감소</div></div>
+    <div class="project-card"><span class="project-type-badge">Optimization</span><div class="project-title">End-to-End Supply Chain Digital Twin</div><div class="project-desc">수요 급증, 용량 제한 및 운송 중단 상황을 시뮬레이션하기 위한 다단계 공급망 디지털 트윈 구축.</div><div class="project-tags"><span class="project-tag">Digital Twins</span><span class="project-tag">Simulation</span><span class="project-tag">Supply Chain</span></div><div class="project-result"><div class="project-result-label">성과</div>재고 유지 비용 최대 18% 절감</div></div>
+    <div class="project-card"><span class="project-type-badge">Innovation</span><div class="project-title">Substation Condition Monitoring Platform</div><div class="project-desc">변압기·차단기·모선 IoT 센서 스트림 데이터를 통합한 고압 변전소 이상 탐지 및 상태 점수화.</div><div class="project-tags"><span class="project-tag">IoT</span><span class="project-tag">Time-Series Analysis</span><span class="project-tag">Cloud Analytics</span></div><div class="project-result"><div class="project-result-label">성과</div>계획되지 않은 가동 중단 20% 감소</div></div>
+  </div>
+</section>
+
+<section id="publications">
+  <div class="section-header">
+    <div class="section-tag">Publications</div>
+    <div class="section-title">연구 논문</div>
+    <div class="lime-line"></div>
+    <p class="section-sub">산업용 AI 분야에 기여한 연구 성과들입니다.</p>
+  </div>
+  <div class="pub-list">
+    <div class="pub-card"><div class="pub-year-col"><div class="pub-year-num">2025</div><span class="pub-type-badge">Journal</span></div><div><div class="pub-title">Automated Detection and Recognition of Engraved Serial Numbers on Metallic Surfaces</div><div class="pub-authors">Thanh-Dat Nguyen; Sachin Ranjan; Le-Anh Tran; Kichul Lee; Moonseok Kang; Hoon Kim</div><div class="pub-venue">IEEE (Unpublished)</div><a href="https://ieeexplore.ieee.org/document/10675015" class="pub-link" target="_blank">논문 보기 →</a></div></div>
+    <div class="pub-card"><div class="pub-year-col"><div class="pub-year-num">2024</div><span class="pub-type-badge">Conference</span></div><div><div class="pub-title">POCS-based Image Compression: An Empirical Examination</div><div class="pub-authors">Truong-Dong Do; Le-Anh Tran; Thanh-Dat Nguyen; Nghe-Nhan Truong; Dong-Chul Park; My-Ha Le</div><div class="pub-venue">2024 7th International Conference on Green Technology and Sustainable Development (GTSD)</div><a href="https://ieeexplore.ieee.org/document/10675015" class="pub-link" target="_blank">논문 보기 →</a></div></div>
+    <div class="pub-card"><div class="pub-year-col"><div class="pub-year-num">2023</div><span class="pub-type-badge">Conference</span></div><div><div class="pub-title">Embedding Clustering via Autoencoder and Projection onto Convex Set</div><div class="pub-authors">Le-Anh Tran; Thanh-Dat Nguyen; Truong-Dong Do; Chung Nguyen Tran; Daehyun Kwon; Dong-Chul Park</div><div class="pub-venue">2023 International Conference on System Science and Engineering (ICSSE)</div><a href="https://ieeexplore.ieee.org/document/10227240" class="pub-link" target="_blank">논문 보기 →</a></div></div>
+    <div class="pub-card"><div class="pub-year-col"><div class="pub-year-num">2023</div><span class="pub-type-badge">Conference</span></div><div><div class="pub-title">Efficient Infrared and Thermal Imaging Fusion Approach for Real-time Human Detection in Heavy Smoke Scenarios</div><div class="pub-authors">Nghe-Nhan Truong; My-Ha Le; Truong-Dong Do; Le-Anh Tran; Thanh-Dat Nguyen; Hoang-Hon Trinh</div><div class="pub-venue">2023 International Conference on System Science and Engineering (ICSSE)</div><a href="https://ieeexplore.ieee.org/document/10227078" class="pub-link" target="_blank">논문 보기 →</a></div></div>
+    <div class="pub-card"><div class="pub-year-col"><div class="pub-year-num">2022</div><span class="pub-type-badge">Workshop</span></div><div><div class="pub-title">POCS-based Clustering Algorithm</div><div class="pub-authors">Le-Anh Tran; Henock M. Deberneh; Truong-Dong Do; Thanh-Dat Nguyen; My-Ha Le; Dong-Chul Park</div><div class="pub-venue">2022 International Workshop on Intelligent Systems (IWIS)</div><a href="https://ieeexplore.ieee.org/document/9920762" class="pub-link" target="_blank">논문 보기 →</a></div></div>
+  </div>
+</section>
+
+<section class="section-alt" id="members">
   <div class="section-header">
     <div class="section-tag">People</div>
     <div class="section-title">주요 구성원</div>
     <div class="lime-line"></div>
   </div>
   <div class="members-grid">
-    <div class="member-card">
-      <div class="avatar">강M</div>
-      <div class="member-name">강 대표</div>
-      <div class="member-role">원장 / 대표</div>
-      <div class="member-tag">AI 전략</div>
+    <div class="member-card"><div class="member-avatar"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="member-name">강문식</div><div class="member-role">원장</div><div class="member-tag">AI 전략</div></div>
+    <div class="member-card"><div class="member-avatar"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="member-name">이기철</div><div class="member-role">대표</div><div class="member-tag">경영</div></div>
+    <div class="member-card"><div class="member-avatar"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="member-name">연구원</div><div class="member-role">선임 연구원</div><div class="member-tag">AI 거버넌스</div></div>
+    <div class="member-card"><div class="member-avatar"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="member-name">연구원</div><div class="member-role">선임 연구원</div><div class="member-tag">스마트시티</div></div>
+  </div>
+  <div style="margin-top:64px;">
+    <div class="section-header">
+      <div class="section-tag">Advisory Board</div>
+      <div class="section-title">자문위원</div>
+      <div class="lime-line"></div>
+      <p class="section-sub">국내 주요 대학 교수진으로 구성된 전문 자문위원단이 연구원의 방향성을 함께 설계합니다.</p>
     </div>
-    <div class="member-card">
-      <div class="avatar">김R</div>
-      <div class="member-name">김 박사</div>
-      <div class="member-role">수석 연구원</div>
-      <div class="member-tag">LLM</div>
-    </div>
-    <div class="member-card">
-      <div class="avatar">이P</div>
-      <div class="member-name">이 연구원</div>
-      <div class="member-role">선임 연구원</div>
-      <div class="member-tag">AI 거버넌스</div>
-    </div>
-    <div class="member-card">
-      <div class="avatar">박S</div>
-      <div class="member-name">박 연구원</div>
-      <div class="member-role">선임 연구원</div>
-      <div class="member-tag">스마트시티</div>
-    </div>
+    <table class="advisory-table">
+      <thead><tr><th>#</th><th>성명</th><th>소속</th><th>직위</th></tr></thead>
+      <tbody>
+        <tr><td>01</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>강석주 교수</td><td><span class="univ-badge">서강대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>02</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>김성우 교수</td><td><span class="univ-badge">서울대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>03</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>권혁인 교수</td><td><span class="univ-badge">중앙대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>04</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>구민석 교수</td><td><span class="univ-badge">서울시립대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>05</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>박성욱 교수</td><td><span class="univ-badge">강원대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>06</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>변영재 교수</td><td><span class="univ-badge">UNIST</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>07</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>전세영 교수</td><td><span class="univ-badge">서울대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>08</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>조성제 교수</td><td><span class="univ-badge">이화여자대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>09</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>한재호 교수</td><td><span class="univ-badge">고려대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>10</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>김종옥 교수</td><td><span class="univ-badge">고려대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>11</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>이충용 교수</td><td><span class="univ-badge">연세대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>12</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>노원우 교수</td><td><span class="univ-badge">연세대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>13</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>김 훈 교수</td><td><span class="univ-badge">인천대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>14</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>백광현 교수</td><td><span class="univ-badge">중앙대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>15</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>이덕기 교수</td><td><span class="univ-badge">연암공과대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>16</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>김 혁 교수</td><td><span class="univ-badge">서울시립대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>17</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>박동욱 교수</td><td><span class="univ-badge">서울시립대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>18</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>정성엽 교수</td><td><span class="univ-badge">고려대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>19</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>이신형 교수</td><td><span class="univ-badge">서울시립대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+        <tr><td>20</td><td><span class="adv-icon"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="#c6f135" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c6f135" stroke-width="1.5" stroke-linecap="round"/></svg></span>박혜림 교수</td><td><span class="univ-badge">서울과학기술대학교</span></td><td style="color:var(--gray);font-size:12px;">자문위원</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
-<!-- NEWS -->
-<section class="news" id="news">
+<section id="news">
   <div class="section-header">
     <div class="section-tag">News</div>
     <div class="section-title">공지 및 소식</div>
     <div class="lime-line"></div>
   </div>
-  <div class="news-list">
-    <div class="news-item">
-      <div class="news-date">2025.05.20</div>
-      <div class="news-badge badge-recruit">채용</div>
-      <div>
-        <div class="news-title">2025년 하반기 AI 전략 연구원 채용 공고</div>
-        <div class="news-sub">AI 거버넌스 및 생성형 AI 분야 석·박사급 연구원 모집</div>
+  <div class="news-grid">
+    <div class="news-card news-card-feat">
+      <div class="news-feat-left"><div class="news-feat-icon">📄</div><div class="news-feat-year">2025</div><div class="news-feat-label">Journal</div></div>
+      <div class="news-feat-right">
+        <div class="news-card-top"><span class="news-badge badge-paper">논문 게재</span><span class="news-date">2025.04</span></div>
+        <div class="news-title">IEEE 논문 게재 — 금속 부품 각인 인식 기술</div>
+        <div class="news-sub">「Automated Detection and Recognition of Engraved Serial Numbers on Metallic Surfaces」가 IEEE에 게재되었습니다. 회전 불변 OCR 파이프라인을 통해 저대비·반사 환경의 금속 표면에서도 높은 인식 정확도를 달성. 저자: Thanh-Dat Nguyen, Sachin Ranjan, Le-Anh Tran, Kichul Lee, Moonseok Kang, Hoon Kim.</div>
       </div>
     </div>
-    <div class="news-item">
-      <div class="news-date">2025.04.11</div>
-      <div class="news-badge badge-paper">논문</div>
-      <div>
-        <div class="news-title">공공 분야 생성형 AI 도입 전략 연구 논문 게재</div>
-        <div class="news-sub">국내 주요 학술지 게재 확정 — AI 정책 및 거버넌스 분야</div>
-      </div>
+    <div class="news-card">
+      <div class="news-card-top"><span class="news-badge badge-paper">논문</span><span class="news-date">2024.08</span></div>
+      <div class="news-title">GTSD 2024 — POCS 기반 이미지 압축 연구 발표</div>
+      <div class="news-sub">「POCS-based Image Compression: An Empirical Examination」을 GTSD 2024 국제학술대회에서 발표. POCS 클러스터링 알고리즘의 이미지 압축 적용 가능성을 실험적으로 검증하였습니다.</div>
     </div>
-    <div class="news-item">
-      <div class="news-date">2025.03.15</div>
-      <div class="news-badge badge-award">수상</div>
-      <div>
-        <div class="news-title">과학기술정보통신부 장관상 수상</div>
-        <div class="news-sub">AI 신뢰성 및 윤리 연구 성과 인정</div>
-      </div>
+    <div class="news-card">
+      <div class="news-card-top"><span class="news-badge badge-paper">논문</span><span class="news-date">2023.07</span></div>
+      <div class="news-title">ICSSE 2023 — 연기 환경 인체 탐지 논문 발표</div>
+      <div class="news-sub">적외선·열화상 카메라 융합 기술로 화재 연기 환경에서 mAP@0.5 95% 달성, NVIDIA Jetson Nano 실시간 구동 검증.</div>
     </div>
-    <div class="news-item">
-      <div class="news-date">2025.02.28</div>
-      <div class="news-badge badge-paper">세미나</div>
-      <div>
-        <div class="news-title">2025 AI 전략 포럼 — 스마트시티와 AI 거버넌스</div>
-        <div class="news-sub">서울 코엑스 개최 · 참가 신청 접수 중</div>
-      </div>
+    <div class="news-card news-pending">
+      <div class="news-card-top"><span class="news-badge badge-pending">수상</span><span class="news-date">— 준비중 —</span></div>
+      <div class="news-title">수상 소식을 준비 중입니다</div>
+      <div class="news-sub">관련 내용이 확정되면 업데이트할 예정입니다.</div>
+    </div>
+    <div class="news-card news-pending">
+      <div class="news-card-top"><span class="news-badge badge-pending">채용</span><span class="news-date">— 준비중 —</span></div>
+      <div class="news-title">채용 공고를 준비 중입니다</div>
+      <div class="news-sub">채용 계획이 확정되면 공고를 게시할 예정입니다.</div>
+    </div>
+    <div class="news-card news-pending">
+      <div class="news-card-top"><span class="news-badge badge-pending">세미나</span><span class="news-date">— 준비중 —</span></div>
+      <div class="news-title">세미나·포럼 일정을 준비 중입니다</div>
+      <div class="news-sub">일정이 확정되면 상세 내용을 안내해 드리겠습니다.</div>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer>
   <div class="footer-inner">
     <div>
       <div class="footer-logo"><span>AI</span> Strategy Research Institute</div>
       <div class="footer-info">
-        © 2025 AI 전략 연구원 | AI Strategy Research Institute / (주)OCST 부설연구소<br>
-        서울특별시 성동구 성수동 | 원장: M Kang<br>
-        이메일: contact@aistrategy.or.kr | 대표전화: (02) 2205-4038 | 팩스: (02) 2205-4080
+        © 2025 AI 전략 연구원 | AI Strategy Research Institute<br>
+        (주)OCST 부설연구소 | 원장: 강문식<br>
+        본사: 서울시 성동구 성수이로 7가길 13, 태진빌딩 2층<br>
+        대표전화: (02) 2205-4038 | 팩스: (02) 2205-4080<br>
+        이메일: contact@aistrategy.or.kr
       </div>
     </div>
-    <div class="footer-links">
+    <div class="footer-col">
+      <div class="footer-col-title">Quick Links</div>
+      <a href="#about">연구원 소개</a>
+      <a href="#services">서비스</a>
+      <a href="#solutions">솔루션</a>
+      <a href="#projects">프로젝트</a>
+      <a href="#publications">논문</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Legal</div>
       <a href="#">개인정보처리방침</a>
       <a href="#">이용약관</a>
-      <a href="#">오시는 길</a>
+      <a href="http://www.ocst.co.kr" target="_blank">OCST 본사</a>
+      <a href="#members">오시는 길</a>
     </div>
   </div>
   <div class="footer-bottom">
