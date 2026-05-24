@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Strategy Research Institute</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d1b3e;
+    --navy-mid: #162245;
+    --navy-light: #1e2f5a;
+    --lime: #c6f135;
+    --lime-dark: #a8d420;
+    --white: #ffffff;
+    --gray: #a0aec0;
+    --gray-light: #e2e8f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; width: 100%; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 60px;
+    background: rgba(13, 27, 62, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(198, 241, 53, 0.15);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 2px;
+    color: var(--white);
+  }
+  .nav-logo span { color: var(--lime); }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    font-size: 13px; font-weight: 300; letter-spacing: 1px;
+    color: var(--gray); text-decoration: none;
+    text-transform: uppercase; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--lime); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 120px 60px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; right: -80px; top: 50%;
+    transform: translateY(-50%);
+    width: 600px; height: 600px; opacity: 0.18;
+  }
+  .hero-content { max-width: 680px; position: relative; z-index: 2; }
+  .hero-badge {
+    display: inline-block;
+    border: 1px solid var(--lime);
+    color: var(--lime);
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    padding: 6px 16px; border-radius: 2px;
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px; line-height: 0.95; letter-spacing: 2px;
+    margin-bottom: 28px;
+  }
+  .hero h1 .lime { color: var(--lime); }
+  .hero-desc {
+    font-size: 15px; font-weight: 300; line-height: 1.9;
+    color: #c8d4e8; margin-bottom: 24px; max-width: 560px;
+  }
+  .hero-desc2 {
+    font-size: 14px; font-weight: 300; line-height: 1.8;
+    color: #8fa0bc; margin-bottom: 32px; max-width: 560px;
+  }
+  .hero-list { list-style: none; margin-bottom: 40px; }
+  .hero-list li {
+    font-size: 14px; font-weight: 300; color: #c8d4e8;
+    padding: 6px 0; padding-left: 18px; position: relative;
+  }
+  .hero-list li::before {
+    content: ''; position: absolute; left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 6px; height: 6px; background: var(--lime); border-radius: 50%;
+  }
+  .hero-btns { display: flex; gap: 14px; }
+  .btn-lime {
+    background: var(--lime); color: var(--navy);
+    font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    padding: 13px 32px; border: none; cursor: pointer;
+    text-transform: uppercase; transition: background 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-lime:hover { background: var(--lime-dark); }
+  .btn-outline {
+    background: transparent; color: var(--lime);
+    font-size: 13px; font-weight: 400; letter-spacing: 1px;
+    padding: 13px 32px; border: 1px solid var(--lime);
+    cursor: pointer; text-transform: uppercase; transition: all 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-outline:hover { background: rgba(198,241,53,0.08); }
+  .hero-slogan {
+    margin-top: 60px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px; letter-spacing: 4px;
+    color: var(--lime); opacity: 0.7;
+  }
+
+  /* STATS */
+  .stats {
+    background: var(--navy-light);
+    border-top: 1px solid rgba(198,241,53,0.15);
+    border-bottom: 1px solid rgba(198,241,53,0.15);
+    padding: 48px 60px;
+  }
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .stat-item {
+    text-align: center; padding: 20px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px; color: var(--lime); line-height: 1;
+    margin-bottom: 8px;
+  }
+  .stat-label { font-size: 12px; font-weight: 300; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* SECTION COMMON */
+  section { padding: 90px 60px; }
+  .section-header { margin-bottom: 52px; }
+  .section-tag {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--lime); margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px; letter-spacing: 1px; line-height: 1.1;
+  }
+  .section-sub {
+    font-size: 14px; font-weight: 300; color: #8fa0bc;
+    margin-top: 10px; line-height: 1.7;
+  }
+
+  /* ABOUT */
+  .about { background: var(--navy-mid); }
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+  .about-text p {
+    font-size: 14px; font-weight: 300; color: #c8d4e8;
+    line-height: 1.9; margin-bottom: 16px;
+  }
+  .about-text strong { color: var(--white); font-weight: 500; }
+  .values-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
+  .value-card {
+    background: rgba(198,241,53,0.06);
+    border: 1px solid rgba(198,241,53,0.2);
+    padding: 20px; border-radius: 2px;
+  }
+  .value-title { font-size: 13px; font-weight: 700; color: var(--lime); margin-bottom: 6px; }
+  .value-desc { font-size: 12px; font-weight: 300; color: #8fa0bc; line-height: 1.6; }
+  .about-visual {
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0.3;
+  }
+
+  /* SERVICES */
+  .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .service-card {
+    background: var(--navy-light);
+    border: 1px solid rgba(255,255,255,0.07);
+    padding: 36px 28px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .service-card:hover { border-color: rgba(198,241,53,0.4); }
+  .service-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 3px; height: 0; background: var(--lime);
+    transition: height 0.3s;
+  }
+  .service-card:hover::before { height: 100%; }
+  .service-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px; color: rgba(198,241,53,0.12);
+    line-height: 1; margin-bottom: 20px;
+  }
+  .service-title { font-size: 16px; font-weight: 500; margin-bottom: 14px; }
+  .service-list { list-style: none; }
+  .service-list li {
+    font-size: 13px; font-weight: 300; color: #8fa0bc;
+    padding: 5px 0; padding-left: 14px; position: relative; line-height: 1.6;
+  }
+  .service-list li::before {
+    content: '—'; position: absolute; left: 0;
+    color: var(--lime); font-size: 10px;
+  }
+
+  /* RESEARCH FIELDS */
+  .fields { background: var(--navy-mid); }
+  .fields-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .field-card {
+    background: var(--navy);
+    border: 1px solid rgba(255,255,255,0.07);
+    padding: 28px 24px;
+    transition: all 0.3s;
+  }
+  .field-card:hover {
+    background: rgba(198,241,53,0.05);
+    border-color: rgba(198,241,53,0.3);
+    transform: translateY(-3px);
+  }
+  .field-icon { font-size: 26px; margin-bottom: 14px; }
+  .field-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  .field-desc { font-size: 13px; font-weight: 300; color: #8fa0bc; line-height: 1.6; }
+
+  /* MEMBERS */
+  .members-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .member-card {
+    background: var(--navy-light);
+    border: 1px solid rgba(255,255,255,0.07);
+    padding: 28px 20px; text-align: center;
+    transition: border-color 0.3s;
+  }
+  .member-card:hover { border-color: rgba(198,241,53,0.3); }
+  .avatar {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(198,241,53,0.15);
+    border: 1px solid rgba(198,241,53,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 500; color: var(--lime);
+    margin: 0 auto 14px;
+  }
+  .member-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .member-role { font-size: 12px; font-weight: 300; color: var(--gray); margin-bottom: 10px; }
+  .member-tag {
+    display: inline-block; font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--lime);
+    border: 1px solid rgba(198,241,53,0.3);
+    padding: 3px 10px;
+  }
+
+  /* NEWS */
+  .news { background: var(--navy-mid); }
+  .news-list { display: flex; flex-direction: column; gap: 1px; }
+  .news-item {
+    display: flex; align-items: center; gap: 28px;
+    background: var(--navy);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 20px 28px;
+    transition: background 0.2s;
+  }
+  .news-item:hover { background: rgba(198,241,53,0.04); }
+  .news-date { font-size: 11px; color: var(--gray); min-width: 80px; letter-spacing: 0.5px; }
+  .news-badge {
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 1px; min-width: 54px; text-align: center;
+  }
+  .badge-recruit { background: rgba(198,241,53,0.15); color: var(--lime); }
+  .badge-paper { background: rgba(99,153,240,0.15); color: #82aaff; }
+  .badge-award { background: rgba(255,180,60,0.15); color: #ffc85e; }
+  .news-title { font-size: 14px; font-weight: 400; flex: 1; }
+  .news-sub { font-size: 12px; font-weight: 300; color: #8fa0bc; margin-top: 3px; }
+
+  /* FOOTER */
+  footer {
+    background: #080f24;
+    border-top: 1px solid rgba(198,241,53,0.15);
+    padding: 48px 60px;
+  }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 32px;
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px; letter-spacing: 2px; color: var(--white);
+    margin-bottom: 12px;
+  }
+  .footer-logo span { color: var(--lime); }
+  .footer-info { font-size: 12px; font-weight: 300; color: #4a5a7a; line-height: 1.9; }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { font-size: 12px; color: #4a5a7a; text-decoration: none; letter-spacing: 0.5px; }
+  .footer-links a:hover { color: var(--lime); }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-slogan {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px; letter-spacing: 4px; color: rgba(198,241,53,0.4);
+  }
+  .footer-copy { font-size: 11px; color: #4a5a7a; }
+
+  /* DIVIDER */
+  .lime-line {
+    width: 48px; height: 3px; background: var(--lime);
+    margin: 16px 0 0;
+  }
+
+  /* WIREFRAME SVG */
+  .wireframe { width: 100%; height: 100%; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hero-content > * { animation: fadeUp 0.7s ease both; }
+  .hero-content > *:nth-child(1) { animation-delay: 0.1s; }
+  .hero-content > *:nth-child(2) { animation-delay: 0.2s; }
+  .hero-content > *:nth-child(3) { animation-delay: 0.3s; }
+  .hero-content > *:nth-child(4) { animation-delay: 0.4s; }
+  .hero-content > *:nth-child(5) { animation-delay: 0.5s; }
+  .hero-content > *:nth-child(6) { animation-delay: 0.6s; }
+  .hero-content > *:nth-child(7) { animation-delay: 0.7s; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><span>AI</span> Strategy Research Institute</div>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#about">About Us</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#research">연구 분야</a></li>
+    <li><a href="#members">구성원</a></li>
+    <li><a href="#news">소식</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg">
+    <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" class="wireframe">
+      <g fill="none" stroke="#c6f135" stroke-width="0.8">
+        <ellipse cx="250" cy="250" rx="240" ry="240"/>
+        <ellipse cx="250" cy="250" rx="240" ry="80"/>
+        <ellipse cx="250" cy="250" rx="240" ry="140"/>
+        <ellipse cx="250" cy="250" rx="240" ry="190"/>
+        <ellipse cx="250" cy="250" rx="80" ry="240" transform="rotate(30 250 250)"/>
+        <ellipse cx="250" cy="250" rx="80" ry="240" transform="rotate(60 250 250)"/>
+        <ellipse cx="250" cy="250" rx="80" ry="240" transform="rotate(90 250 250)"/>
+        <ellipse cx="250" cy="250" rx="80" ry="240" transform="rotate(120 250 250)"/>
+        <ellipse cx="250" cy="250" rx="80" ry="240" transform="rotate(150 250 250)"/>
+        <line x1="10" y1="250" x2="490" y2="250"/>
+        <line x1="250" y1="10" x2="250" y2="490"/>
+      </g>
+    </svg>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">기업 부설 연구원 · (주)OCST</div>
+    <h1><span class="lime">AI Strategy</span><br>Research Institute</h1>
+    <p class="hero-desc">AI 전략 연구원은 인공지능 기술의 전략적 활용을 통해<br>공공기관과 민간 기업의 혁신을 지원하는 전문 연구기관입니다.</p>
+    <p class="hero-desc2">우리는 급변하는 디지털 환경 속에서 신뢰할 수 있는 AI 도입 전략과 운영 방향을 제시하며,<br>기술의 사회적 책임과 거버넌스까지 고려한 통합적 AI 전략 컨설팅을 제공합니다.</p>
+    <ul class="hero-list">
+      <li>기업 및 공공기관 대상 AI 전략 수립 및 기술 자문</li>
+      <li>스마트시티, 스마트팩토리, 교육 분야에서의 적용 컨설팅</li>
+      <li>AI 거버넌스 체계 수립 및 윤리 기준 정립</li>
+      <li>최신 AI 트렌드를 반영한 전문 교육 및 세미나 운영</li>
+    </ul>
+    <div class="hero-btns">
+      <a href="#services" class="btn-lime">서비스 보기</a>
+      <a href="#news" class="btn-outline">기술동향</a>
+    </div>
+    <div class="hero-slogan">AI is Strategy. We Design It.</div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-num">47</div>
+      <div class="stat-label">연구 인력</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">128</div>
+      <div class="stat-label">논문 · 특허</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">23</div>
+      <div class="stat-label">진행 프로젝트</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">2015</div>
+      <div class="stat-label">설립 연도</div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="about-grid">
+    <div>
+      <div class="section-header">
+        <div class="section-tag">About Us</div>
+        <div class="section-title">우리가 추구하는<br>가치</div>
+        <div class="lime-line"></div>
+      </div>
+      <div class="about-text">
+        <p>AI 전략 연구원은 인공지능(AI)이 모든 산업과 사회 구조를 재편하는 시대에 대응하여,<br><strong>기술·정책·윤리를 아우르는 통합적 전략 수립</strong>을 목표로 하는 전문 연구기관입니다.</p>
+        <p>우리는 단순한 기술 도입을 넘어, AI의 사회적 파급력과 지속가능성을 고려한 전략을 설계합니다. 대규모 언어모델(LLM), 생성형 AI, 멀티모달 인공지능, AI 거버넌스 등 <strong>최신 글로벌 기술 트렌드</strong>를 실시간으로 반영하며, 정부기관과 민간기업이 실질적인 AI 활용 전략을 수립할 수 있도록 연구·자문·교육을 제공합니다.</p>
+      </div>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-title">전략중심</div>
+          <div class="value-desc">기술 중심에서 벗어나, 조직 맞춤형 AI 전략 수립</div>
+        </div>
+        <div class="value-card">
+          <div class="value-title">미래지향</div>
+          <div class="value-desc">생성형 AI, 자율 에이전트, 연합학습 등 최신 트렌드 반영</div>
+        </div>
+        <div class="value-card">
+          <div class="value-title">책임기반</div>
+          <div class="value-desc">AI 윤리, 개인정보 보호, 신뢰성 확보까지 고려한 설계</div>
+        </div>
+        <div class="value-card">
+          <div class="value-title">협력지향</div>
+          <div class="value-desc">공공기관, 스타트업, 산업계와의 실질적 협업 기반 운영</div>
+        </div>
+      </div>
+    </div>
+    <div class="about-visual">
+      <svg viewBox="0 0 400 400" width="360" height="360" xmlns="http://www.w3.org/2000/svg">
+        <g fill="none" stroke="#c6f135" stroke-width="0.8">
+          <polygon points="200,20 380,380 20,380"/>
+          <polygon points="200,60 350,360 50,360"/>
+          <polygon points="200,100 320,340 80,340"/>
+          <polygon points="200,140 290,320 110,320"/>
+          <polygon points="200,180 260,300 140,300"/>
+          <line x1="200" y1="20" x2="200" y2="380"/>
+          <line x1="380" y1="380" x2="110" y2="180"/>
+          <line x1="20" y1="380" x2="290" y2="180"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="section-header">
+    <div class="section-tag">Services</div>
+    <div class="section-title">AI는 선택이 아닌<br>전략입니다</div>
+    <div class="lime-line"></div>
+    <p class="section-sub" style="margin-top:16px;">AI 전략 연구원은 사회 각 분야가 기술에 끌려가지 않고, 기술을 주도적으로 설계할 수 있도록 돕습니다.</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-num">01</div>
+      <div class="service-title">AI 전략 자문</div>
+      <ul class="service-list">
+        <li>공공 및 민간 대상 AI 도입 로드맵 수립 및 정책 자문</li>
+        <li>AI 거버넌스 체계, 윤리 가이드라인 및 책임 있는 AI 프레임 설계</li>
+      </ul>
+    </div>
+    <div class="service-card">
+      <div class="service-num">02</div>
+      <div class="service-title">생성형 AI 컨설팅</div>
+      <ul class="service-list">
+        <li>생성형 AI의 공공/산업 적용 전략 연구</li>
+        <li>스마트 시티, 스마트 제조, 헬스케어, 교육 분야 기술 적용 컨설팅</li>
+      </ul>
+    </div>
+    <div class="service-card">
+      <div class="service-num">03</div>
+      <div class="service-title">교육 및 세미나</div>
+      <ul class="service-list">
+        <li>국내외 최신 AI 트렌드 분석 및 전문가 교육/세미나 운영</li>
+        <li>조직 맞춤형 AI 리터러시 프로그램 설계 및 운영</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH FIELDS -->
+<section class="fields" id="research">
+  <div class="section-header">
+    <div class="section-tag">Research</div>
+    <div class="section-title">핵심 연구 분야</div>
+    <div class="lime-line"></div>
+  </div>
+  <div class="fields-grid">
+    <div class="field-card">
+      <div class="field-icon">🧠</div>
+      <div class="field-title">인공지능 / 머신러닝</div>
+      <div class="field-desc">딥러닝, 강화학습, 자연어처리 분야의 원천 기술 및 응용 연구</div>
+    </div>
+    <div class="field-card">
+      <div class="field-icon">🏛️</div>
+      <div class="field-title">AI 거버넌스 · 정책</div>
+      <div class="field-desc">AI 윤리, 규제 프레임워크, 공공 정책 연계 연구</div>
+    </div>
+    <div class="field-card">
+      <div class="field-icon">🔤</div>
+      <div class="field-title">대규모 언어모델 (LLM)</div>
+      <div class="field-desc">생성형 AI, 멀티모달 인공지능, 언어모델 응용 연구</div>
+    </div>
+    <div class="field-card">
+      <div class="field-icon">🏙️</div>
+      <div class="field-title">스마트시티 · 산업 AI</div>
+      <div class="field-desc">스마트팩토리, 스마트시티, 헬스케어 분야 AI 적용 연구</div>
+    </div>
+    <div class="field-card">
+      <div class="field-icon">🛡️</div>
+      <div class="field-title">AI 신뢰성 · 보안</div>
+      <div class="field-desc">설명 가능한 AI, 편향성 제거, 프라이버시 보호 기술</div>
+    </div>
+    <div class="field-card">
+      <div class="field-icon">📊</div>
+      <div class="field-title">데이터 사이언스</div>
+      <div class="field-desc">대용량 데이터 분석, 예측 모델링, 비즈니스 인텔리전스</div>
+    </div>
+  </div>
+</section>
+
+<!-- MEMBERS -->
+<section id="members">
+  <div class="section-header">
+    <div class="section-tag">People</div>
+    <div class="section-title">주요 구성원</div>
+    <div class="lime-line"></div>
+  </div>
+  <div class="members-grid">
+    <div class="member-card">
+      <div class="avatar">강M</div>
+      <div class="member-name">강 대표</div>
+      <div class="member-role">원장 / 대표</div>
+      <div class="member-tag">AI 전략</div>
+    </div>
+    <div class="member-card">
+      <div class="avatar">김R</div>
+      <div class="member-name">김 박사</div>
+      <div class="member-role">수석 연구원</div>
+      <div class="member-tag">LLM</div>
+    </div>
+    <div class="member-card">
+      <div class="avatar">이P</div>
+      <div class="member-name">이 연구원</div>
+      <div class="member-role">선임 연구원</div>
+      <div class="member-tag">AI 거버넌스</div>
+    </div>
+    <div class="member-card">
+      <div class="avatar">박S</div>
+      <div class="member-name">박 연구원</div>
+      <div class="member-role">선임 연구원</div>
+      <div class="member-tag">스마트시티</div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWS -->
+<section class="news" id="news">
+  <div class="section-header">
+    <div class="section-tag">News</div>
+    <div class="section-title">공지 및 소식</div>
+    <div class="lime-line"></div>
+  </div>
+  <div class="news-list">
+    <div class="news-item">
+      <div class="news-date">2025.05.20</div>
+      <div class="news-badge badge-recruit">채용</div>
+      <div>
+        <div class="news-title">2025년 하반기 AI 전략 연구원 채용 공고</div>
+        <div class="news-sub">AI 거버넌스 및 생성형 AI 분야 석·박사급 연구원 모집</div>
+      </div>
+    </div>
+    <div class="news-item">
+      <div class="news-date">2025.04.11</div>
+      <div class="news-badge badge-paper">논문</div>
+      <div>
+        <div class="news-title">공공 분야 생성형 AI 도입 전략 연구 논문 게재</div>
+        <div class="news-sub">국내 주요 학술지 게재 확정 — AI 정책 및 거버넌스 분야</div>
+      </div>
+    </div>
+    <div class="news-item">
+      <div class="news-date">2025.03.15</div>
+      <div class="news-badge badge-award">수상</div>
+      <div>
+        <div class="news-title">과학기술정보통신부 장관상 수상</div>
+        <div class="news-sub">AI 신뢰성 및 윤리 연구 성과 인정</div>
+      </div>
+    </div>
+    <div class="news-item">
+      <div class="news-date">2025.02.28</div>
+      <div class="news-badge badge-paper">세미나</div>
+      <div>
+        <div class="news-title">2025 AI 전략 포럼 — 스마트시티와 AI 거버넌스</div>
+        <div class="news-sub">서울 코엑스 개최 · 참가 신청 접수 중</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo"><span>AI</span> Strategy Research Institute</div>
+      <div class="footer-info">
+        © 2025 AI 전략 연구원 | AI Strategy Research Institute / (주)OCST 부설연구소<br>
+        서울특별시 성동구 성수동 | 원장: M Kang<br>
+        이메일: contact@aistrategy.or.kr | 대표전화: (02) 2205-4038 | 팩스: (02) 2205-4080
+      </div>
+    </div>
+    <div class="footer-links">
+      <a href="#">개인정보처리방침</a>
+      <a href="#">이용약관</a>
+      <a href="#">오시는 길</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-slogan">AI is Strategy. We Design It.</div>
+    <div class="footer-copy">AI Strategy Research Institute · All rights reserved</div>
+  </div>
+</footer>
+
+</body>
+</html>
