@@ -1,0 +1,14 @@
+# API 키 (절대 커밋 금지)
+.env
+
+# 런타임 생성 파일
+logs/
+outputs/
+__pycache__/
+*.pyc
+*.pyo
+*.log
+*.json
+
+# zip 풀기로 생긴 중복 폴더
+research_agent/
