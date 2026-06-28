@@ -3,7 +3,6 @@
 
 # 런타임 생성 파일
 logs/
-outputs/
 __pycache__/
 *.pyc
 *.pyo
