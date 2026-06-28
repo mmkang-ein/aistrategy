@@ -1,67 +1,63 @@
 @echo off
-chcp 65001 >nul
 cd /d "%~dp0"
 
 cls
 echo.
 echo  ============================================================
-echo    ðŸ”¬ ì—°êµ¬ ìžë™í™” ì‹œìŠ¤í…œ (Multi-Agent Research System)
+echo    Research Agent - Launcher
 echo  ============================================================
 echo.
 
-REM â”€â”€ ì´ë¯¸ ì‹¤í–‰ ì¤‘ì´ë©´ ë¸Œë¼ìš°ì €ë§Œ ì—´ê¸° â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+REM -- ÀÌ¹Ì ½ÇÇà ÁßÀÌ¸é ºê¶ó¿ìÀú¸¸ ¿­±â --
 netstat -ano | findstr ":8601" | findstr "LISTENING" >nul 2>&1
 if %errorlevel%==0 (
-    echo  [INFO] ì´ë¯¸ ì‹¤í–‰ ì¤‘ìž…ë‹ˆë‹¤. ë¸Œë¼ìš°ì €ë¥¼ ì—½ë‹ˆë‹¤...
+    echo  [INFO] ÀÌ¹Ì ½ÇÇà ÁßÀÔ´Ï´Ù. ºê¶ó¿ìÀú¸¦ ¿±´Ï´Ù...
     timeout /t 1 >nul
     start http://localhost:8601
     goto shortcut
 )
 
-REM â”€â”€ ê°€ìƒí™˜ê²½ ìžë™ ê°ì§€ ë° í™œì„±í™” â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+REM -- °¡»óÈ¯°æ ÀÚµ¿ °¨Áö ¹× È°¼ºÈ­ --
 if exist "%~dp0venv\Scripts\activate.bat" (
-    echo  [INFO] ê°€ìƒí™˜ê²½ í™œì„±í™” ì¤‘... (venv)
+    echo  [INFO] °¡»óÈ¯°æ È°¼ºÈ­ Áß... (venv)
     call "%~dp0venv\Scripts\activate.bat"
 ) else if exist "%~dp0.venv\Scripts\activate.bat" (
-    echo  [INFO] ê°€ìƒí™˜ê²½ í™œì„±í™” ì¤‘... (.venv)
+    echo  [INFO] °¡»óÈ¯°æ È°¼ºÈ­ Áß... (.venv)
     call "%~dp0.venv\Scripts\activate.bat"
 ) else (
-    echo  [INFO] ì‹œìŠ¤í…œ Python ì‚¬ìš© ì¤‘...
+    echo  [INFO] ½Ã½ºÅÛ Python »ç¿ë Áß...
 )
 
-REM â”€â”€ Streamlit ë°±ê·¸ë¼ìš´ë“œ ì‹¤í–‰ (ìµœì†Œí™”) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-echo  [INFO] ì•± ì‹œìž‘ ì¤‘... (í¬íŠ¸ 8601)
-start "ì—°êµ¬ìžë™í™”ì‹œìŠ¤í…œ" /D "%~dp0" /min cmd /k ^
-  "chcp 65001 >nul && python -m streamlit run app.py --server.port 8601 --server.headless true --browser.gatherUsageStats false"
+REM -- Streamlit ¹é±×¶ó¿îµå ½ÇÇà (ÃÖ¼ÒÈ­ Ã¢) --
+echo  [INFO] ¾Û ½ÃÀÛ Áß... (Æ÷Æ® 8601)
+start "ResearchAgent" /D "%~dp0" /min cmd /k "chcp 65001 >nul && python -m streamlit run app.py --server.port 8601 --server.headless true --browser.gatherUsageStats false"
 
-REM â”€â”€ ì„œë²„ ì¤€ë¹„ ëŒ€ê¸° í›„ ë¸Œë¼ìš°ì € ì˜¤í”ˆ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-echo  [INFO] ì„œë²„ ì¤€ë¹„ ì¤‘...
+REM -- ¼­¹ö ÁØºñ ´ë±â --
+echo  [INFO] ¼­¹ö ÁØºñ Áß...
 :wait_loop
 timeout /t 1 >nul
 netstat -ano | findstr ":8601" | findstr "LISTENING" >nul 2>&1
 if not %errorlevel%==0 goto wait_loop
 
-echo  [INFO] ë¸Œë¼ìš°ì € ì˜¤í”ˆ ì¤‘...
+echo  [INFO] ºê¶ó¿ìÀú ¿ÀÇÂ Áß...
 start http://localhost:8601
 
-REM â”€â”€ ë°”íƒ•í™”ë©´ ë°”ë¡œê°€ê¸° ìƒì„± (ìµœì´ˆ 1íšŒ) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+REM -- ¹ÙÅÁÈ­¸é ¹Ù·Î°¡±â »ý¼º (ÃÖÃÊ 1È¸) --
 :shortcut
-set SHORTCUT=%USERPROFILE%\Desktop\ì—°êµ¬ìžë™í™”ì‹œìŠ¤í…œ.lnk
+set SHORTCUT=%USERPROFILE%\Desktop\¿¬±¸ÀÚµ¿È­½Ã½ºÅÛ.lnk
 if exist "%SHORTCUT%" goto done
 
-echo  [INFO] ë°”íƒ•í™”ë©´ ë°”ë¡œê°€ê¸° ìƒì„± ì¤‘...
-powershell -NoProfile -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%');$s.TargetPath='%~f0';$s.WorkingDirectory='%~dp0';$s.Description='ì—°êµ¬ ìžë™í™” ì‹œìŠ¤í…œ ëŸ°ì²˜';$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,13';$s.Save()"
+echo  [INFO] ¹ÙÅÁÈ­¸é ¹Ù·Î°¡±â »ý¼º Áß...
+powershell -NoProfile -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%');$s.TargetPath='%~f0';$s.WorkingDirectory='%~dp0';$s.Description='¿¬±¸ ÀÚµ¿È­ ½Ã½ºÅÛ ·±Ã³';$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,13';$s.Save()"
 if exist "%SHORTCUT%" (
-    echo  [ì™„ë£Œ] ë°”íƒ•í™”ë©´ ë°”ë¡œê°€ê¸°ê°€ ìƒì„±ëìŠµë‹ˆë‹¤.
-) else (
-    echo  [ì°¸ê³ ] ë°”ë¡œê°€ê¸° ìƒì„± ì‹¤íŒ¨ (ê¶Œí•œ ë¬¸ì œì¼ ìˆ˜ ìžˆìŠµë‹ˆë‹¤)
+    echo  [¿Ï·á] ¹ÙÅÁÈ­¸é ¹Ù·Î°¡±â°¡ »ý¼ºµÆ½À´Ï´Ù.
 )
 
 :done
 echo.
 echo  ============================================================
-echo    âœ… http://localhost:8601 ì—ì„œ ì‹¤í–‰ ì¤‘
-echo    ì´ ì°½ì€ ë‹«ì•„ë„ ë©ë‹ˆë‹¤.
+echo    ¿Ï·á: http://localhost:8601
+echo    ÀÌ Ã¢Àº ´Ý¾Æµµ µË´Ï´Ù.
 echo  ============================================================
 echo.
 timeout /t 4 >nul
