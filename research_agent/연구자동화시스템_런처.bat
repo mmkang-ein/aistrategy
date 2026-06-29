@@ -1,87 +1,76 @@
 @echo off
+chcp 65001 >nul
 cd /d "%~dp0"
 
-:start
 cls
 echo.
 echo  ============================================================
-echo    Research Agent  v2.0.0
-echo    Multi-Agent Research Automation System
+echo    Research Agent - ì—°êµ¬ìžë™í™”ì‹œìŠ¤í…œ ëŸ°ì²˜
+echo    Python 3.12 / ì‹œìŠ¤í…œ Python
 echo  ============================================================
 echo.
-echo  °æ·Î: %~dp0
-echo.
 
-REM -- ÀÌ¹Ì ½ÇÇà ÁßÀÌ¸é ¹Ù·Î ºê¶ó¿ìÀú ¿­±â
+REM â”€â”€ [STEP 1] ì´ë¯¸ ì‹¤í–‰ ì¤‘ì´ë©´ ë°”ë¡œ ì—´ê¸° â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 netstat -ano | findstr ":8601" | findstr "LISTENING" >nul 2>&1
 if %errorlevel%==0 (
-    echo  [OK] ÀÌ¹Ì ½ÇÇà ÁßÀÔ´Ï´Ù.
-    echo.
-    echo  ºê¶ó¿ìÀú¿¡¼­ http://localhost:8601 À» ¿±´Ï´Ù...
+    echo  [OK] ì´ë¯¸ ì‹¤í–‰ ì¤‘ìž…ë‹ˆë‹¤.
+    echo  ë¸Œë¼ìš°ì €ì—ì„œ http://localhost:8601 ì„ ì—½ë‹ˆë‹¤...
     start http://localhost:8601
     goto shortcut
 )
 
-REM -- ÃÖ½Å ÄÚµå ÀÚµ¿ ¾÷µ¥ÀÌÆ®
-echo  [INFO] ÃÖ½Å ÄÚµå È®ÀÎ Áß...
+REM â”€â”€ [STEP 2] Python 3.12 í™•ì¸ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+echo  [1/4] Python 3.12 í™•ì¸ ì¤‘...
+py -3.12 --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo  [ì˜¤ë¥˜] Python 3.12 ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.
+    echo         python.org ì—ì„œ Python 3.12 ë¥¼ ì„¤ì¹˜í•˜ì„¸ìš”.
+    pause
+    exit /b 1
+)
+for /f "tokens=*" %%v in ('py -3.12 --version 2^>^&1') do echo  [OK] %%v
+echo.
+
+REM â”€â”€ [STEP 3] git pull â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+echo  [2/4] ìµœì‹  ì½”ë“œ í™•ì¸ ì¤‘...
 git pull --autostash >nul 2>&1
 if %errorlevel%==0 (
-    echo  [OK] ÄÚµå ÃÖ½Å »óÅÂ
+    echo  [OK] ì½”ë“œ ìµœì‹  ìƒíƒœ
 ) else (
-    echo  [INFO] git ¾÷µ¥ÀÌÆ® °Ç³Ê¶Ü
+    echo  [INFO] git pull ì‹¤íŒ¨ â€” í˜„ìž¬ ì½”ë“œë¡œ ê³„ì† ì§„í–‰
 )
 echo.
 
-REM -- °¡»óÈ¯°æ ÀÚµ¿ °¨Áö ¹× È°¼ºÈ­
-if exist "%~dp0venv\Scripts\activate.bat" (
-    echo  [INFO] °¡»óÈ¯°æ È°¼ºÈ­ Áß... (venv)
-    call "%~dp0venv\Scripts\activate.bat"
-) else if exist "%~dp0.venv\Scripts\activate.bat" (
-    echo  [INFO] °¡»óÈ¯°æ È°¼ºÈ­ Áß... (.venv)
-    call "%~dp0.venv\Scripts\activate.bat"
+REM â”€â”€ [STEP 4] íŒ¨í‚¤ì§€ í™•ì¸ (import ì²´í¬ â†’ ì‹¤íŒ¨ ì‹œë§Œ ì„¤ì¹˜) â”€â”€â”€â”€â”€
+echo  [3/4] íŒ¨í‚¤ì§€ í™•ì¸ ì¤‘...
+py -3.12 -c "import streamlit, anthropic, dotenv, docx, fpdf" >nul 2>&1
+if %errorlevel%==0 (
+    echo  [OK] ëª¨ë“  íŒ¨í‚¤ì§€ ì„¤ì¹˜ í™•ì¸ë¨
 ) else (
-    echo  [INFO] ½Ã½ºÅÛ Python »ç¿ë Áß...
-)
-
-REM -- Python È®ÀÎ
-python --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo.
-    echo  [¿À·ù] Python À» Ã£À» ¼ö ¾ø½À´Ï´Ù.
-    echo         https://python.org
-    echo.
-    pause
-    exit /b 1
+    echo  [INFO] ëˆ„ë½ íŒ¨í‚¤ì§€ ì„¤ì¹˜ ì¤‘... (ìµœì´ˆ ì‹¤í–‰ ì‹œ ìˆ˜ë¶„ ì†Œìš”)
+    py -3.12 -m pip install -r "%~dp0requirements.txt" -q >nul 2>&1
+    py -3.12 -m pip install streamlit python-docx fpdf2 -q >nul 2>&1
+    py -3.12 -c "import streamlit, anthropic, dotenv, docx, fpdf" >nul 2>&1
+    if %errorlevel% neq 0 (
+        echo  [ì˜¤ë¥˜] íŒ¨í‚¤ì§€ ì„¤ì¹˜ ì‹¤íŒ¨. ì¸í„°ë„· ì—°ê²°ì„ í™•ì¸í•˜ì„¸ìš”.
+        pause
+        exit /b 1
+    )
+    echo  [OK] íŒ¨í‚¤ì§€ ì„¤ì¹˜ ì™„ë£Œ
 )
 echo.
 
-REM -- Streamlit ¼³Ä¡ È®ÀÎ
-python -c "import streamlit" >nul 2>&1
-if %errorlevel% neq 0 (
-    echo.
-    echo  [¿À·ù] Streamlit ÀÌ ¼³Ä¡µÇÁö ¾Ê¾Ò½À´Ï´Ù.
-    echo         pip install -r requirements.txt
-    echo.
-    pause
-    exit /b 1
-)
-
-REM -- .env ÆÄÀÏ È®ÀÎ
+REM â”€â”€ [STEP 5] .env í™•ì¸ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if not exist "%~dp0.env" (
-    echo  [°æ°í] .env ÆÄÀÏÀÌ ¾ø½À´Ï´Ù. API Å° ÇÊ¿ä
-    echo         ANTHROPIC_API_KEY=sk-ant-...
+    echo  [ê²½ê³ ] .env íŒŒì¼ ì—†ìŒ â€” ANTHROPIC_API_KEY ë¥¼ .env ì— ìž…ë ¥í•˜ì„¸ìš”.
     echo.
-    echo  °è¼ÓÇÏ·Á¸é ¾Æ¹« Å°³ª ´©¸£¼¼¿ä...
-    pause >nul
 )
 
-REM -- Streamlit ¾Û ½ÇÇà
-echo.
-echo  [INFO] Research Agent ½ÃÀÛ Áß...
-start "ResearchAgent" /D "%~dp0" /min cmd /k "chcp 65001 >nul && python -m streamlit run app.py --server.port 8601 --server.headless true --browser.gatherUsageStats false"
+REM â”€â”€ [STEP 6] Streamlit ì‹¤í–‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+echo  [4/4] Streamlit ì•± ì‹œìž‘ ì¤‘...
+start "ResearchAgent" /D "%~dp0" /min cmd /k "chcp 65001 >nul && py -3.12 -m streamlit run app.py --server.port 8601 --server.headless true --browser.gatherUsageStats false"
 
-REM -- ¼­¹ö ÁØºñ ´ë±â (ÃÖ´ë 40ÃÊ)
-echo  [INFO] ¼­¹ö ÁØºñ ´ë±â Áß...
+REM â”€â”€ ì„œë²„ ì¤€ë¹„ ëŒ€ê¸° (ìµœëŒ€ 40ì´ˆ) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 set /a tries=0
 :wait_loop
 timeout /t 1 >nul
@@ -90,33 +79,32 @@ netstat -ano | findstr ":8601" | findstr "LISTENING" >nul 2>&1
 if %errorlevel%==0 goto server_ready
 if %tries% lss 40 goto wait_loop
 
-echo.
-echo  [¿À·ù] 40ÃÊ ³»¿¡ ¼­¹ö°¡ ½ÃÀÛµÇÁö ¾Ê¾Ò½À´Ï´Ù.
-echo.
+echo  [ì˜¤ë¥˜] 40ì´ˆ ë‚´ì— ì„œë²„ê°€ ì‹œìž‘ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.
+echo         ìµœì†Œí™”ëœ Streamlit ì°½ì—ì„œ ì˜¤ë¥˜ë¥¼ í™•ì¸í•˜ì„¸ìš”.
 pause
 exit /b 1
 
 :server_ready
-echo  [OK] ¼­¹ö ÁØºñ ¿Ï·á!
+echo  [OK] ì„œë²„ ì¤€ë¹„ ì™„ë£Œ! (%tries%ì´ˆ ì†Œìš”)
 echo.
-echo  ºê¶ó¿ìÀú¿¡¼­ http://localhost:8601 À» ¿±´Ï´Ù...
+echo  ë¸Œë¼ìš°ì €ì—ì„œ http://localhost:8601 ì„ ì—½ë‹ˆë‹¤...
 start http://localhost:8601
 
-REM -- ¹ÙÅÁÈ­¸é ¹Ù·Î°¡±â »ý¼º (ÃÖÃÊ 1È¸)
+REM â”€â”€ ë°”íƒ•í™”ë©´ ë°”ë¡œê°€ê¸° ìƒì„± (ìµœì´ˆ 1íšŒ) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 :shortcut
-set "SHORTCUT=%USERPROFILE%\Desktop\¿¬±¸ÀÚµ¿È­½Ã½ºÅÛ.lnk"
+set "SHORTCUT=%USERPROFILE%\Desktop\ì—°êµ¬ìžë™í™”ì‹œìŠ¤í…œ.lnk"
 if exist "%SHORTCUT%" goto done
 echo.
-echo  [INFO] ¹ÙÅÁÈ­¸é ¹Ù·Î°¡±â »ý¼º Áß...
-powershell -NoProfile -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%');$s.TargetPath='%~f0';$s.WorkingDirectory='%~dp0';$s.Description='Research Agent v2.0.0';$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,13';$s.Save()"
-if exist "%SHORTCUT%" echo  [OK] ¹ÙÅÁÈ­¸é ¹Ù·Î°¡±â »ý¼º ¿Ï·á!
+echo  [INFO] ë°”íƒ•í™”ë©´ ë°”ë¡œê°€ê¸° ìƒì„± ì¤‘...
+powershell -NoProfile -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%');$s.TargetPath='%~f0';$s.WorkingDirectory='%~dp0';$s.Description='ì—°êµ¬ ìžë™í™” ì‹œìŠ¤í…œ';$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,13';$s.Save()"
+if exist "%SHORTCUT%" echo  [OK] ë°”íƒ•í™”ë©´ ë°”ë¡œê°€ê¸° ìƒì„± ì™„ë£Œ!
 
 :done
 echo.
 echo  ============================================================
-echo    ¿Ï·á!   http://localhost:8601
+echo    ì™„ë£Œ!  http://localhost:8601
 echo  ============================================================
 echo.
-echo  ÀÌ Ã¢Àº ´Ý¾Æµµ µË´Ï´Ù.
+echo  ì´ ì°½ì„ ë‹«ìœ¼ë ¤ë©´ ì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ì„¸ìš”...
 pause >nul
 exit /b 0
