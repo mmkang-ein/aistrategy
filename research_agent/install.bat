@@ -1,131 +1,133 @@
 @echo off
+chcp 65001 >nul
 cd /d "%~dp0"
 
 cls
 echo.
 echo  ============================================================
-echo    Research Agent - ¼³Ä¡ ¸¶¹ý»ç
+echo    ðŸ”¬ Research Agent  v2.0.0 - ì„¤ì¹˜ ë§ˆë²•ì‚¬
 echo    Multi-Agent Research System Setup
 echo  ============================================================
 echo.
 
-REM ¦¡¦¡ STEP 0: ¼±Çà Á¶°Ç È®ÀÎ ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-echo  [STEP 1/4] È¯°æ È®ÀÎ Áß...
+REM â”€â”€ STEP 1: í™˜ê²½ í™•ì¸ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+echo  [STEP 1/4] í™˜ê²½ í™•ì¸ ì¤‘...
 echo.
 
 git --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo  [¿À·ù] Git ÀÌ ¼³Ä¡µÇÁö ¾Ê¾Ò½À´Ï´Ù.
-    echo         https://git-scm.com ¿¡¼­ Git À» ¼³Ä¡ÇÏ¼¼¿ä.
+    echo  [ì˜¤ë¥˜] Git ì´ ì„¤ì¹˜ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.
+    echo         https://git-scm.com ì—ì„œ Git ì„ ì„¤ì¹˜í•˜ì„¸ìš”.
     echo.
     pause
-    exit
+    exit /b 1
 )
-echo  [OK] Git È®ÀÎ
+echo  [OK] Git í™•ì¸
 
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo  [¿À·ù] Python ÀÌ ¼³Ä¡µÇÁö ¾Ê¾Ò½À´Ï´Ù.
-    echo         https://python.org ¿¡¼­ Python À» ¼³Ä¡ÇÏ¼¼¿ä.
+    echo  [ì˜¤ë¥˜] Python ì´ ì„¤ì¹˜ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.
+    echo         https://python.org ì—ì„œ Python ì„ ì„¤ì¹˜í•˜ì„¸ìš”.
     echo.
     pause
-    exit
+    exit /b 1
 )
-echo  [OK] Python È®ÀÎ
+echo  [OK] Python í™•ì¸
 echo.
 
-REM ¦¡¦¡ STEP 1: ÄÚµå ´Ù¿î·Îµå ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-echo  [STEP 2/4] ÄÚµå ´Ù¿î·Îµå Áß...
+REM â”€â”€ STEP 2: ì½”ë“œ ë‹¤ìš´ë¡œë“œ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+echo  [STEP 2/4] ì½”ë“œ ë‹¤ìš´ë¡œë“œ ì¤‘...
 echo.
 
-REM ÀÌ¹Ì research_agent Æú´õ ¾È¿¡ ÀÖ´Â °æ¿ì (git pull)
+REM ì´ë¯¸ research_agent í´ë” ì•ˆì— ìžˆëŠ” ê²½ìš° (git pull)
 if exist "%~dp0app.py" if exist "%~dp0requirements.txt" (
-    echo  [INFO] ±âÁ¸ ¼³Ä¡ °¨Áö - ÃÖ½Å ÄÚµå·Î ¾÷µ¥ÀÌÆ® Áß...
+    echo  [INFO] ì´ë¯¸ ì„¤ì¹˜ë¨ - ìµœì‹  ì½”ë“œë¡œ ì—…ë°ì´íŠ¸ ì¤‘...
     git pull --autostash
     if %errorlevel%==0 (
-        echo  [OK] ÄÚµå ¾÷µ¥ÀÌÆ® ¿Ï·á
+        echo  [OK] ì½”ë“œ ì—…ë°ì´íŠ¸ ì™„ë£Œ
     ) else (
-        echo  [INFO] ¾÷µ¥ÀÌÆ® ½ÇÆÐ (³×Æ®¿öÅ© È®ÀÎ)
+        echo  [INFO] ì—…ë°ì´íŠ¸ ì‹¤íŒ¨ (ë„¤íŠ¸ì›Œí¬ í™•ì¸)
     )
-    set APP_DIR=%~dp0
+    set "APP_DIR=%~dp0"
     goto step_install
 )
 
-REM Ã³À½ ¼³Ä¡ - GitHub ¿¡¼­ Å¬·Ð
-echo  [INFO] GitHub ¿¡¼­ ÄÚµå ´Ù¿î·Îµå Áß...
-echo         (½Ã°£ÀÌ °É¸± ¼ö ÀÖ½À´Ï´Ù...)
+REM ì²˜ìŒ ì„¤ì¹˜ - GitHub ì—ì„œ í´ë¡ 
+echo  [INFO] GitHub ì—ì„œ ì½”ë“œ ë‹¤ìš´ë¡œë“œ ì¤‘...
+echo         (ì‹œê°„ì´ ê±¸ë¦´ ìˆ˜ ìžˆìŠµë‹ˆë‹¤...)
 echo.
 git clone https://github.com/mmkang-ein/aistrategy.git
 if %errorlevel% neq 0 (
     echo.
-    echo  [¿À·ù] ´Ù¿î·Îµå ½ÇÆÐ - ÀÎÅÍ³Ý ¿¬°á ¹× GitHub Á¢±Ù ±ÇÇÑÀ» È®ÀÎÇÏ¼¼¿ä.
+    echo  [ì˜¤ë¥˜] ë‹¤ìš´ë¡œë“œ ì‹¤íŒ¨ - ì¸í„°ë„· ì—°ê²° ë° GitHub ì£¼ì†Œë¥¼ í™•ì¸í•˜ì„¸ìš”.
     echo.
     pause
-    exit
+    exit /b 1
 )
-echo  [OK] ´Ù¿î·Îµå ¿Ï·á
-set APP_DIR=%~dp0aistrategy\research_agent
+echo  [OK] ë‹¤ìš´ë¡œë“œ ì™„ë£Œ
+set "APP_DIR=%~dp0aistrategy\research_agent"
 cd /d "%APP_DIR%"
 echo.
 
-REM ¦¡¦¡ STEP 2: ÆÐÅ°Áö ¼³Ä¡ ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
+REM â”€â”€ STEP 3: íŒ¨í‚¤ì§€ ì„¤ì¹˜ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 :step_install
-echo  [STEP 3/4] ÆÐÅ°Áö ¼³Ä¡ Áß...
+echo  [STEP 3/4] íŒ¨í‚¤ì§€ ì„¤ì¹˜ ì¤‘...
 echo.
 python -m pip install --upgrade pip >nul 2>&1
 python -m pip install -r requirements.txt
 if %errorlevel% neq 0 (
     echo.
-    echo  [¿À·ù] ÆÐÅ°Áö ¼³Ä¡ ½ÇÆÐ
+    echo  [ì˜¤ë¥˜] íŒ¨í‚¤ì§€ ì„¤ì¹˜ ì‹¤íŒ¨
     echo.
     pause
-    exit
+    exit /b 1
 )
 python -m pip install streamlit python-docx fpdf2 >nul 2>&1
-echo  [OK] ÆÐÅ°Áö ¼³Ä¡ ¿Ï·á
+echo  [OK] íŒ¨í‚¤ì§€ ì„¤ì¹˜ ì™„ë£Œ
 echo.
 
-REM ¦¡¦¡ STEP 3: API Å° ¼³Á¤ ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-echo  [STEP 4/4] API Å° ¼³Á¤...
+REM â”€â”€ STEP 4: API í‚¤ ì„¤ì • â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+echo  [STEP 4/4] API í‚¤ ì„¤ì •...
 echo.
+if not defined APP_DIR set "APP_DIR=%~dp0"
 if exist "%APP_DIR%.env" (
-    echo  [OK] .env ÆÄÀÏÀÌ ÀÌ¹Ì Á¸ÀçÇÕ´Ï´Ù.
+    echo  [OK] .env íŒŒì¼ì´ ì´ë¯¸ ì¡´ìž¬í•©ë‹ˆë‹¤.
     goto step_launch
 )
-if not defined APP_DIR set APP_DIR=%~dp0
-echo  Anthropic API Å°°¡ ÇÊ¿äÇÕ´Ï´Ù.
-echo  https://console.anthropic.com ¿¡¼­ ¹ß±Þ¹ÞÀ» ¼ö ÀÖ½À´Ï´Ù.
+
+echo  Anthropic API í‚¤ê°€ í•„ìš”í•©ë‹ˆë‹¤.
+echo  https://console.anthropic.com ì—ì„œ ë°œê¸‰ë°›ì„ ìˆ˜ ìžˆìŠµë‹ˆë‹¤.
 echo.
-set /p API_KEY=  API Å°¸¦ ÀÔ·ÂÇÏ¼¼¿ä (sk-ant-...): 
+set /p "API_KEY=  API í‚¤ë¥¼ ìž…ë ¥í•˜ì„¸ìš” (sk-ant-...): "
 if "%API_KEY%"=="" (
     echo.
-    echo  [°æ°í] API Å°¸¦ ÀÔ·ÂÇÏÁö ¾Ê¾Ò½À´Ï´Ù.
-    echo         ³ªÁß¿¡ .env ÆÄÀÏ¿¡ Á÷Á¢ ÀÔ·ÂÇÏ¼¼¿ä:
+    echo  [ê²½ê³ ] API í‚¤ë¥¼ ìž…ë ¥í•˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.
+    echo         ë‚˜ì¤‘ì— .env íŒŒì¼ì— ì§ì ‘ ìž…ë ¥í•˜ì„¸ìš”:
     echo         ANTHROPIC_API_KEY=sk-ant-...
     echo.
     goto step_launch
 )
 echo ANTHROPIC_API_KEY=%API_KEY%> "%APP_DIR%.env"
-echo  [OK] .env ÆÄÀÏ »ý¼º ¿Ï·á
+echo  [OK] .env íŒŒì¼ ìƒì„± ì™„ë£Œ
 echo.
 
-REM ¦¡¦¡ STEP 4: ¾Û ½ÇÇà ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
+REM â”€â”€ ì„¤ì¹˜ ì™„ë£Œ â†’ ë°”ë¡œ ì‹¤í–‰ ì•ˆë‚´ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 :step_launch
 echo  ============================================================
-echo    ¼³Ä¡ ¿Ï·á!
+echo    ì„¤ì¹˜ ì™„ë£Œ!
 echo  ============================================================
 echo.
-echo  Áö±Ý ¹Ù·Î ¾ÛÀ» ½ÇÇàÇÏ½Ã°Ú½À´Ï±î?
-set /p LAUNCH=  ½ÇÇàÇÏ·Á¸é Y, ³ªÁß¿¡ ½ÇÇàÇÏ·Á¸é N ÀÔ·Â: 
+echo  ì§€ê¸ˆ ë°”ë¡œ ì‹¤í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?
+set /p "LAUNCH=  ì‹¤í–‰í•˜ë ¤ë©´ Y, ë‚˜ì¤‘ì— ì‹¤í–‰í•˜ë ¤ë©´ N ìž…ë ¥: "
 if /i "%LAUNCH%"=="Y" (
-    if not defined APP_DIR set APP_DIR=%~dp0
-    call "%APP_DIR%¿¬±¸ÀÚµ¿È­½Ã½ºÅÛ_·±Ã³.bat"
+    if not defined APP_DIR set "APP_DIR=%~dp0"
+    call "%APP_DIR%ì—°êµ¬ìžë™í™”ì‹œìŠ¤í…œ_ëŸ°ì²˜.bat"
 )
 
 echo.
-echo  ´ÙÀ½¹øºÎÅÍ´Â ¾Æ·¡ ÆÄÀÏÀ» ´õºíÅ¬¸¯ÇÏ¸é ½ÇÇàµË´Ï´Ù:
-if not defined APP_DIR set APP_DIR=%~dp0
-echo  %APP_DIR%¿¬±¸ÀÚµ¿È­½Ã½ºÅÛ_·±Ã³.bat
+echo  ë‚˜ì¤‘ì— ì‹¤í–‰í•  ë•ŒëŠ” ì•„ëž˜ íŒŒì¼ì„ ë”ë¸”í´ë¦­í•˜ì„¸ìš”:
+if not defined APP_DIR set "APP_DIR=%~dp0"
+echo  %APP_DIR%ì—°êµ¬ìžë™í™”ì‹œìŠ¤í…œ_ëŸ°ì²˜.bat
 echo.
 pause
-exit
+exit /b 0

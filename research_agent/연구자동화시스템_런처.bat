@@ -2,17 +2,18 @@
 chcp 65001 >nul
 cd /d "%~dp0"
 
+:start
 cls
 echo.
 echo  ============================================================
-echo    Research Agent - 연구자동화시스템 런처
-echo    Python 3.12 / 시스템 Python
+echo    🔬 Research Agent  v2.0.0
+echo    Multi-Agent Research Automation System
 echo  ============================================================
 echo.
 echo  경로: %~dp0
 echo.
 
-REM ── [STEP 1] 이미 실행 중이면 바로 열기 ─────────────────────
+REM ── 이미 실행 중이면 바로 브라우저 열기 ──────────────────────
 netstat -ano | findstr ":8601" | findstr "LISTENING" >nul 2>&1
 if %errorlevel%==0 (
     echo  [OK] 이미 실행 중입니다.
@@ -22,87 +23,70 @@ if %errorlevel%==0 (
     goto shortcut
 )
 
-REM ── [STEP 2] Python 3.12 확인 ────────────────────────────────
-echo  [1/4] Python 3.12 확인 중...
-py -3.12 --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo.
-    echo  [오류] Python 3.12 를 찾을 수 없습니다.
-    echo         python.org 에서 Python 3.12 를 설치하세요.
-    echo.
-    pause
-    exit /b 1
-)
-for /f "tokens=*" %%v in ('py -3.12 --version 2^>^&1') do echo  [OK] %%v
-echo.
-
-REM ── [STEP 3] git pull (최신 코드 동기화) ────────────────────
-echo  [2/4] 최신 코드 확인 중...
-git --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo  [INFO] git 미설치 — 업데이트 건너뜀
+REM ── 최신 코드 자동 업데이트 (git pull) ───────────────────────
+echo  [INFO] 최신 코드 확인 중...
+git pull --autostash >nul 2>&1
+if %errorlevel%==0 (
+    echo  [OK] 코드 최신 상태
 ) else (
-    git pull --autostash >nul 2>&1
-    if %errorlevel%==0 (
-        echo  [OK] 코드 최신 상태
-    ) else (
-        echo  [INFO] git pull 실패 — 오프라인 또는 충돌. 현재 코드로 계속 진행합니다.
-    )
+    echo  [INFO] git 업데이트 건너뜀 (네트워크/git 미설치)
 )
 echo.
 
-REM ── [STEP 4] 패키지 확인 및 자동 설치 ──────────────────────
-echo  [3/4] 패키지 확인 및 설치 중...
-
-REM pip 업그레이드 (조용히)
-py -3.12 -m pip install --upgrade pip -q >nul 2>&1
-
-REM requirements.txt 설치
-if exist "%~dp0requirements.txt" (
-    py -3.12 -m pip install -r "%~dp0requirements.txt" -q
-    if %errorlevel% neq 0 (
-        echo  [경고] requirements.txt 일부 패키지 설치 실패 — 계속 진행합니다.
-    ) else (
-        echo  [OK] requirements.txt 패키지 설치 완료
-    )
-)
-
-REM 추가 필수 패키지 (streamlit, python-docx, fpdf2)
-py -3.12 -m pip install streamlit python-docx fpdf2 -q
-if %errorlevel% neq 0 (
-    echo  [경고] 일부 추가 패키지 설치 실패 — 계속 진행합니다.
+REM ── 가상환경 자동 감지 및 활성화 ─────────────────────────────
+if exist "%~dp0venv\Scripts\activate.bat" (
+    echo  [INFO] 가상환경 활성화 중... (venv)
+    call "%~dp0venv\Scripts\activate.bat"
+) else if exist "%~dp0.venv\Scripts\activate.bat" (
+    echo  [INFO] 가상환경 활성화 중... (.venv)
+    call "%~dp0.venv\Scripts\activate.bat"
 ) else (
-    echo  [OK] 추가 패키지 확인 완료
+    echo  [INFO] 시스템 Python 사용 중...
 )
 
-REM streamlit 임포트 최종 확인
-py -3.12 -c "import streamlit" >nul 2>&1
+REM ── Python 확인 ───────────────────────────────────────────────
+python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo.
-    echo  [오류] streamlit 설치에 실패했습니다.
-    echo         인터넷 연결을 확인하고 다시 시도하세요.
+    echo  [오류] Python 을 찾을 수 없습니다.
+    echo         Python 설치 후 PATH 에 추가하세요.
+    echo         https://python.org
     echo.
     pause
     exit /b 1
 )
 echo.
 
-REM ── [STEP 5] .env 파일 확인 ─────────────────────────────────
+REM ── Streamlit 설치 확인 ───────────────────────────────────────
+python -c "import streamlit" >nul 2>&1
+if %errorlevel% neq 0 (
+    echo.
+    echo  [오류] Streamlit 이 설치되지 않았습니다.
+    echo         아래 명령어를 실행하세요:
+    echo.
+    echo    pip install -r requirements.txt
+    echo.
+    pause
+    exit /b 1
+)
+
+REM ── .env 파일 확인 ────────────────────────────────────────────
 if not exist "%~dp0.env" (
-    echo  [경고] .env 파일이 없습니다. API 키가 필요합니다.
-    echo         .env 파일에 다음 내용을 입력하세요:
+    echo  [경고] .env 파일이 없습니다. Anthropic API 키가 필요합니다.
+    echo         .env 파일을 생성하고 아래 내용을 입력하세요:
     echo.
-    echo         ANTHROPIC_API_KEY=sk-ant-...
+    echo    ANTHROPIC_API_KEY=sk-ant-...
     echo.
     echo  계속하려면 아무 키나 누르세요...
     pause >nul
 )
 
-REM ── [STEP 6] Streamlit 실행 ──────────────────────────────────
-echo  [4/4] Streamlit 앱 시작 중...
-start "ResearchAgent" /D "%~dp0" /min cmd /k "chcp 65001 >nul && py -3.12 -m streamlit run app.py --server.port 8601 --server.headless true --browser.gatherUsageStats false"
+REM ── Streamlit 앱 실행 ─────────────────────────────────────────
+echo.
+echo  [INFO] Research Agent 시작 중...
+start "ResearchAgent" /D "%~dp0" /min cmd /k "chcp 65001 >nul && python -m streamlit run app.py --server.port 8601 --server.headless true --browser.gatherUsageStats false"
 
-REM ── 서버 준비 대기 (최대 40초) ──────────────────────────────
+REM ── 서버 준비 대기 (최대 30초) ───────────────────────────────
 echo  [INFO] 서버 준비 대기 중...
 set /a tries=0
 :wait_loop
@@ -113,8 +97,8 @@ if %errorlevel%==0 goto server_ready
 if %tries% lss 40 goto wait_loop
 
 echo.
-echo  [오류] 40초 내에 서버가 시작되지 않았습니다.
-echo         최소화된 Streamlit 창에서 오류 내용을 확인하세요.
+echo  [오류] 30초 내에 서버가 시작되지 않았습니다.
+echo         최소화된 터미널 창에서 오류 내용을 확인하세요.
 echo.
 pause
 exit /b 1
@@ -125,21 +109,27 @@ echo.
 echo  브라우저에서 http://localhost:8601 을 엽니다...
 start http://localhost:8601
 
-REM ── 바탕화면 바로가기 생성 (최초 1회) ──────────────────────
+REM ── 바탕화면 바로가기 생성 (최초 1회) ───────────────────────
 :shortcut
 set "SHORTCUT=%USERPROFILE%\Desktop\연구자동화시스템.lnk"
 if exist "%SHORTCUT%" goto done
 echo.
 echo  [INFO] 바탕화면 바로가기 생성 중...
-powershell -NoProfile -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%');$s.TargetPath='%~f0';$s.WorkingDirectory='%~dp0';$s.Description='연구 자동화 시스템';$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,13';$s.Save()"
+powershell -NoProfile -Command ^
+  "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%');" ^
+  "$s.TargetPath='%~f0';" ^
+  "$s.WorkingDirectory='%~dp0';" ^
+  "$s.Description='Research Agent v2.0.0';" ^
+  "$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,13';" ^
+  "$s.Save()"
 if exist "%SHORTCUT%" echo  [OK] 바탕화면 바로가기 생성 완료!
 
 :done
 echo.
 echo  ============================================================
-echo    완료!  http://localhost:8601
+echo    완료!   http://localhost:8601
 echo  ============================================================
 echo.
-echo  이 창을 닫으려면 아무 키나 누르세요...
+echo  이 창은 닫아도 됩니다. 아무 키나 누르세요...
 pause >nul
 exit /b 0
