@@ -173,10 +173,175 @@ def _docx_code_block(doc, code_text: str):
 
 
 # ══════════════════════════════════════════════════════════════
+# 테이블 / 그림 헬퍼
+# ══════════════════════════════════════════════════════════════
+
+def _is_table_line(line: str) -> bool:
+    return bool(re.match(r"^\s*\|", line.rstrip()))
+
+
+def _parse_md_table(lines: list) -> tuple:
+    if len(lines) < 3:
+        return [], []
+    headers = [h.strip() for h in lines[0].split("|") if h.strip()]
+    rows = []
+    for line in lines[2:]:
+        cells = [c.strip() for c in line.split("|") if c.strip()]
+        if cells:
+            rows.append(cells)
+    return headers, rows
+
+
+def _xml_shading_cell(cell, fill_hex: str):
+    """표 셀 배경색 (XML)"""
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    shd = OxmlElement("w:shd")
+    shd.set(qn("w:val"), "clear")
+    shd.set(qn("w:color"), "auto")
+    shd.set(qn("w:fill"), fill_hex)
+    tcPr.append(shd)
+
+
+def _docx_table(doc, headers: list, rows: list, color_rgb, pr_hex: str, lgt_hex: str):
+    """마크다운 테이블 → Word 표 (헤더 색상, 줄무늬)"""
+    from docx.shared import Pt, RGBColor, Cm
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+    n_cols = max(len(headers), max((len(r) for r in rows), default=1))
+    table = doc.add_table(rows=1 + len(rows), cols=n_cols)
+    table.style = "Table Grid"
+
+    # 헤더 행
+    hdr = table.rows[0]
+    for i in range(n_cols):
+        cell = hdr.cells[i]
+        h_text = headers[i] if i < len(headers) else ""
+        cell.text = h_text
+        _xml_shading_cell(cell, pr_hex)
+        for para in cell.paragraphs:
+            para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            for run in para.runs:
+                run.bold = True
+                run.font.size = Pt(9)
+                run.font.color.rgb = RGBColor(255, 255, 255)
+
+    # 데이터 행
+    for ri, row_data in enumerate(rows):
+        row = table.rows[ri + 1]
+        fill = lgt_hex if ri % 2 == 0 else "FFFFFF"
+        for ci in range(n_cols):
+            cell = row.cells[ci]
+            val = row_data[ci] if ci < len(row_data) else ""
+            cell.text = val
+            if ri % 2 == 0:
+                _xml_shading_cell(cell, fill)
+            for para in cell.paragraphs:
+                for run in para.runs:
+                    run.font.size = Pt(9)
+
+    sp = doc.add_paragraph()
+    sp.paragraph_format.space_before = Pt(2)
+    sp.paragraph_format.space_after  = Pt(4)
+
+
+def _docx_figure(doc, png_bytes: bytes, caption: str):
+    """PNG bytes → Word 이미지 + 캡션"""
+    import io as _io
+    from docx.shared import Cm, Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+    try:
+        buf = _io.BytesIO(png_bytes)
+        doc.add_picture(buf, width=Cm(13.5))
+        last_para = doc.paragraphs[-1]
+        last_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    except Exception:
+        return
+
+    cap_p = doc.add_paragraph()
+    cap_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    cap_p.paragraph_format.space_before = Pt(2)
+    cap_p.paragraph_format.space_after  = Pt(8)
+    run = cap_p.add_run(caption)
+    run.italic = True
+    run.font.size = Pt(9)
+
+
+def _pdf_table(pdf, headers: list, rows: list, R: int, G: int, B: int,
+               font_name: str = "Helvetica"):
+    """마크다운 테이블 → PDF 표"""
+    if not headers or not rows:
+        return
+    n_cols = max(len(headers), max((len(r) for r in rows), default=1))
+    avail  = pdf.w - pdf.l_margin - pdf.r_margin
+    col_w  = avail / n_cols
+
+    pdf.set_fill_color(R, G, B)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font(font_name, size=8)
+    for i in range(n_cols):
+        h = headers[i] if i < len(headers) else ""
+        pdf.set_x(pdf.l_margin + i * col_w)
+        try:
+            pdf.cell(col_w, 6, h[:20], border=1, fill=True, align="C")
+        except Exception:
+            pass
+    pdf.ln()
+
+    for ri, row_data in enumerate(rows):
+        if ri % 2 == 0:
+            pdf.set_fill_color(235, 240, 255)
+        else:
+            pdf.set_fill_color(255, 255, 255)
+        pdf.set_text_color(0, 0, 0)
+        for ci in range(n_cols):
+            val = row_data[ci][:22] if ci < len(row_data) else ""
+            pdf.set_x(pdf.l_margin + ci * col_w)
+            try:
+                pdf.cell(col_w, 5.5, val, border=1, fill=(ri % 2 == 0), align="C")
+            except Exception:
+                pass
+        pdf.ln()
+
+    pdf.ln(3)
+    pdf.set_fill_color(255, 255, 255)
+    pdf.set_text_color(0, 0, 0)
+
+
+def _pdf_figure(pdf, png_bytes: bytes, caption: str, font_name: str = "Helvetica"):
+    """PNG bytes → PDF 이미지 + 캡션"""
+    import io as _io
+    avail = pdf.w - pdf.l_margin - pdf.r_margin
+    img_w = min(avail, 130)
+    x_pos = pdf.l_margin + (avail - img_w) / 2
+
+    try:
+        pdf.image(_io.BytesIO(png_bytes), x=x_pos, w=img_w)
+    except Exception:
+        return
+
+    pdf.ln(2)
+    pdf.set_font(font_name, size=8)
+    pdf.set_text_color(100, 100, 100)
+    pdf.set_x(pdf.l_margin)
+    avail_c = pdf.w - pdf.l_margin - pdf.r_margin
+    try:
+        pdf.multi_cell(avail_c, 5, caption, align="C")
+    except Exception:
+        pass
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(4)
+
+
+# ══════════════════════════════════════════════════════════════
 # DOCX 메인
 # ══════════════════════════════════════════════════════════════
 
-def to_docx(md_text: str, title: str, mode: str = "academic") -> bytes:
+def to_docx(md_text: str, title: str, mode: str = "academic",
+            figures: list = None) -> bytes:
     from docx import Document
     from docx.shared import Pt, Cm, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -239,10 +404,22 @@ def to_docx(md_text: str, title: str, mode: str = "academic") -> bytes:
     is_refs     = False
     in_code     = False
     code_buf: list[str] = []
+    table_buf:  list[str] = []
 
-    for line in md_text.split("\n"):
+    lines_iter = md_text.split("\n")
+    line_idx   = 0
+
+    while line_idx < len(lines_iter):
+        line = lines_iter[line_idx]
+        line_idx += 1
+
         # 코드 블록
         if line.startswith("```"):
+            if table_buf:
+                headers, rows = _parse_md_table(table_buf)
+                if headers and rows:
+                    _docx_table(doc, headers, rows, pr_color, pr_hex, lgt_hex)
+                table_buf.clear()
             if in_code:
                 _docx_code_block(doc, "\n".join(code_buf))
                 code_buf.clear()
@@ -252,13 +429,24 @@ def to_docx(md_text: str, title: str, mode: str = "academic") -> bytes:
             code_buf.append(line)
             continue
 
+        # 마크다운 테이블 수집
+        if _is_table_line(line):
+            table_buf.append(line)
+            continue
+        else:
+            if table_buf:
+                headers, rows = _parse_md_table(table_buf)
+                if headers and rows:
+                    _docx_table(doc, headers, rows, pr_color, pr_hex, lgt_hex)
+                table_buf.clear()
+
         stripped = line.strip()
 
         # H1
         if line.startswith("# ") and not line.startswith("## "):
             txt = _strip_inline(line[2:])
             if txt == title or txt == _strip_inline(title):
-                continue  # 제목 중복 방지
+                continue
             is_abstract = False
             is_refs = any(k in txt.lower() for k in ("references", "참고"))
             _docx_heading(doc, txt, 1, pr_color, 13,
@@ -328,6 +516,20 @@ def to_docx(md_text: str, title: str, mode: str = "academic") -> bytes:
         else:
             _inline_runs(p, line)
 
+    # 마지막 테이블 플러시
+    if table_buf:
+        headers, rows = _parse_md_table(table_buf)
+        if headers and rows:
+            _docx_table(doc, headers, rows, pr_color, pr_hex, lgt_hex)
+
+    # 그림 첨부 (figures appendix)
+    if figures:
+        _docx_heading(doc, "Figures", 2, pr_color, 11, space_before=12, space_after=4)
+        for fig in figures:
+            if fig.get("png_bytes"):
+                cap = f"{fig.get('title', '')}. {fig.get('caption', '')}"
+                _docx_figure(doc, fig["png_bytes"], cap)
+
     buf = io.BytesIO()
     doc.save(buf)
     buf.seek(0)
@@ -375,7 +577,8 @@ def _pdf_code(pdf, code_text: str, font_name: str = "Helvetica"):
 # PDF 메인
 # ══════════════════════════════════════════════════════════════
 
-def to_pdf(md_text: str, title: str, mode: str = "academic") -> bytes:
+def to_pdf(md_text: str, title: str, mode: str = "academic",
+           figures: list = None) -> bytes:
     from fpdf import FPDF
 
     theme = _THEMES.get(mode, _THEMES["academic"])
@@ -502,13 +705,19 @@ def to_pdf(md_text: str, title: str, mode: str = "academic") -> bytes:
     pdf.add_page()
     pdf.set_x(pdf.l_margin)  # 커버 페이지 cursor 영향 초기화
 
-    in_code  = False
+    in_code   = False
     code_buf: list[str] = []
-    is_refs  = False
+    table_buf: list[str] = []
+    is_refs   = False
 
     for line in md_text.split("\n"):
         # 코드 펜스
         if line.startswith("```"):
+            if table_buf:
+                headers, rows = _parse_md_table(table_buf)
+                if headers and rows:
+                    _pdf_table(pdf, headers, rows, R, G, B, font_name)
+                table_buf.clear()
             if in_code:
                 _pdf_code(pdf, "\n".join(code_buf), font_name)
                 code_buf.clear()
@@ -517,6 +726,17 @@ def to_pdf(md_text: str, title: str, mode: str = "academic") -> bytes:
         if in_code:
             code_buf.append(line)
             continue
+
+        # 마크다운 테이블
+        if _is_table_line(line):
+            table_buf.append(line)
+            continue
+        else:
+            if table_buf:
+                headers, rows = _parse_md_table(table_buf)
+                if headers and rows:
+                    _pdf_table(pdf, headers, rows, R, G, B, font_name)
+                table_buf.clear()
 
         clean = _strip_inline(line)
 
@@ -598,5 +818,28 @@ def to_pdf(md_text: str, title: str, mode: str = "academic") -> bytes:
         # 빈 줄
         else:
             pdf.ln(3)
+
+    # 마지막 테이블 플러시
+    if table_buf:
+        headers, rows = _parse_md_table(table_buf)
+        if headers and rows:
+            _pdf_table(pdf, headers, rows, R, G, B, font_name)
+
+    # 그림 첨부 (figures appendix)
+    if figures:
+        pdf.ln(5)
+        sf(11, bold=True)
+        pdf.set_text_color(R, G, B)
+        _pdf_safe(pdf, "Figures")
+        y = pdf.get_y()
+        pdf.set_draw_color(R, G, B)
+        pdf.line(14, y, 196, y)
+        pdf.ln(4)
+        pdf.set_text_color(0, 0, 0)
+        for fig in figures:
+            if fig.get("png_bytes"):
+                sf(10)
+                cap = f"{fig.get('title', '')}. {fig.get('caption', '')}"
+                _pdf_figure(pdf, fig["png_bytes"], cap, font_name)
 
     return bytes(pdf.output())

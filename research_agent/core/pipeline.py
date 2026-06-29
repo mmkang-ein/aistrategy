@@ -21,6 +21,7 @@ from agents.executor          import ExecutorAgent
 from agents.reviewer          import ReviewerAgent
 from agents.writer            import WriterAgent
 from agents.reference_builder import ReferenceBuilder
+from agents.figure_builder    import FigureBuilder
 
 logger = get_logger(__name__)
 
@@ -52,8 +53,9 @@ class ResearchPipeline:
         self.ideation   = IdeationAgent(mode, verbose)
         self.executor   = ExecutorAgent(mode, verbose)
         self.reviewer   = ReviewerAgent(mode, verbose)
-        self.writer     = WriterAgent(mode, verbose)
-        self.ref_builder = ReferenceBuilder(mode, verbose)
+        self.writer        = WriterAgent(mode, verbose)
+        self.ref_builder   = ReferenceBuilder(mode, verbose)
+        self.figure_builder = FigureBuilder(mode, verbose)
 
     def _print_stage(self, stage_num: int):
         label = STAGE_LABELS.get(stage_num, f"Stage {stage_num}")
@@ -132,19 +134,41 @@ class ResearchPipeline:
         # ── Stage 6: Output ───────────────────────────────────
         self._print_stage(6)
         queries = self.state.plan.get("search_queries", [])
+
+        # 6-a: 참고문헌 생성
         refs = await self.ref_builder.build(self.state.summaries, queries)
         self.state.references = refs
         print(f"  참고문헌 {len(refs)}건 생성")
 
-        document = await self.writer.write(self.state)
+        # 6-b: 실험 테이블 생성 (academic 전용)
+        if self.mode == "academic":
+            tables = await self.executor.generate_tables(self.state)
+            self.state.experiment_tables = tables
+            print(f"  비교 테이블 {len(tables)}개 생성")
+
+        # 6-c: 섹션별 분할 문서 작성
+        def _section_cb(section_name: str, content: str):
+            self.state.section_documents[section_name] = content
+
+        document = await self.writer.write(self.state, section_callback=_section_cb)
         self.state.final_document = document
+
+        # 6-d: 그림 생성 (academic 전용, 테이블 필요)
+        if self.mode == "academic" and self.state.experiment_tables:
+            figures = self.figure_builder.build(self.state)
+            self.state.figures = figures
+            print(f"  그림 {len(figures)}개 생성")
 
         output_path = self._save_output(document)
         self.state.output_path = str(output_path)
         self.state.finished_at = datetime.now()
 
         self._save_state_log()
-        return {"output_path": str(output_path), "state": self.state.to_dict()}
+        return {
+            "output_path": str(output_path),
+            "state": self.state.to_dict(),
+            "figures": self.state.figures,
+        }
 
     def _save_output(self, document: str) -> Path:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

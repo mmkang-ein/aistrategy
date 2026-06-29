@@ -17,8 +17,9 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 MODEL_ORCHESTRATOR = "claude-sonnet-4-6"   # Manager, Writer, Review
 MODEL_WORKER       = "claude-haiku-4-5-20251001"  # Lit Agent, Summarizer (병렬·대량)
 
-MAX_TOKENS_DEFAULT = 4096
-MAX_TOKENS_WRITER  = 8192
+MAX_TOKENS_DEFAULT  = 4096
+MAX_TOKENS_WRITER   = 8192
+MAX_TOKENS_SECTION  = 3000   # 섹션별 분할 생성 시 토큰 상한
 
 
 # ─── 검색 설정 ────────────────────────────────────────────────

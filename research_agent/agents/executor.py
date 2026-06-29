@@ -4,10 +4,11 @@
 import json
 from core.base_agent import BaseAgent
 from core.state import ResearchState
-from config.settings import MODEL_ORCHESTRATOR
+from config.settings import MODEL_ORCHESTRATOR, MODEL_WORKER
 
-SYSTEM_DESIGN = "당신은 연구 실험 설계 전문가입니다. JSON만 반환하세요."
-SYSTEM_CODE   = "당신은 Python 연구 코드 전문가입니다. 실행 가능한 코드만 반환하세요 (주석 포함)."
+SYSTEM_DESIGN  = "당신은 연구 실험 설계 전문가입니다. JSON만 반환하세요."
+SYSTEM_CODE    = "당신은 Python 연구 코드 전문가입니다. 실행 가능한 코드만 반환하세요 (주석 포함)."
+SYSTEM_TABLES  = "You are a research data specialist. Return ONLY valid JSON with markdown table strings."
 
 DESIGN_PROMPT = """
 선정 아이디어: {idea}
@@ -33,6 +34,21 @@ CODE_PROMPT = """
 - 결과 시각화 (matplotlib)
 주석을 한국어로 작성하세요."""
 
+TABLE_PROMPT = """
+Research topic: {topic}
+Experiment design: {experiment_json}
+Primary metrics: {metrics}
+
+Generate 3 markdown comparison tables. Return ONLY this JSON structure:
+{{
+  "model_comparison": "| Model | {m1} | {m2} | Params | Notes |\\n|---|---|---|---|---|\\n| Baseline | ... | ... | ... | ... |\\n| Proposed | ... | ... | ... | ✓ Ours |\\n| SOTA-A | ... | ... | ... | ... |\\n| SOTA-B | ... | ... | ... | ... |",
+  "experiment_env": "| Setting | Value |\\n|---|---|\\n| GPU | ... |\\n| Framework | ... |\\n| Epochs | ... |\\n| Batch Size | ... |\\n| Optimizer | ... |\\n| Learning Rate | ... |",
+  "ablation": "| Component | Enabled | {m1} | Δ |\\n|---|---|---|---|\\n| Full Model | ✓ | ... | - |\\n| w/o Module A | ✗ | ... | ... |\\n| w/o Module B | ✗ | ... | ... |\\n| Baseline only | ✗ | ... | ... |"
+}}
+
+Use realistic values based on current research standards for this topic.
+All table cell values must be filled with plausible numbers or text."""
+
 
 class ExecutorAgent(BaseAgent):
     def __init__(self, mode: str, verbose: bool = False):
@@ -47,6 +63,28 @@ class ExecutorAgent(BaseAgent):
         )
         response = await self.call_llm(SYSTEM_DESIGN, prompt, temperature=0.4)
         return self.parse_json(response)
+
+    async def generate_tables(self, state: ResearchState) -> dict:
+        self.print_status("실험 비교 테이블 생성 중...")
+        metrics = state.experiment.get("metrics", ["Accuracy", "F1-Score"])
+        m1 = metrics[0] if metrics else "Accuracy"
+        m2 = metrics[1] if len(metrics) > 1 else "F1-Score"
+        prompt = TABLE_PROMPT.format(
+            topic=state.topic,
+            experiment_json=json.dumps(state.experiment, ensure_ascii=False)[:600],
+            metrics=", ".join(metrics[:4]),
+            m1=m1,
+            m2=m2,
+        )
+        # worker 모델로 빠르게 생성
+        agent = type(self)(self.mode, self.verbose)
+        agent.model = MODEL_WORKER
+        response = await agent.call_llm(SYSTEM_TABLES, prompt, max_tokens=2000, temperature=0.3)
+        tables = self.parse_json(response)
+        if not isinstance(tables, dict):
+            tables = {}
+        self.logger.info(f"Tables generated: {list(tables.keys())}")
+        return tables
 
     async def generate_code(self, state: ResearchState) -> str:
         self.print_status("분석 코드 생성 중...")

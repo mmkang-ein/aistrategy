@@ -30,9 +30,12 @@ class ResearchState:
     reviews: list = field(default_factory=list)
 
     # Stage 6
-    references:     list = field(default_factory=list)
-    final_document: str = ""
-    output_path:    str = ""
+    references:       list = field(default_factory=list)
+    section_documents: dict = field(default_factory=dict)   # {section_name: content}
+    experiment_tables: dict = field(default_factory=dict)   # {table_name: md_str}
+    figures:          list = field(default_factory=list)    # [{title, caption, png_bytes}]
+    final_document:   str = ""
+    output_path:      str = ""
 
     # 메타
     started_at:  Optional[datetime] = None

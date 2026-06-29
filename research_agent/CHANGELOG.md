@@ -1,5 +1,50 @@
 # CHANGELOG
 
+## v3.0.0 (2026-06-30)
+
+### 핵심 목표: 논문 완성도 향상
+
+#### Writer Agent 섹션별 분할 생성 (agents/writer.py 전면 재작성)
+- 기존 단일 호출 → **7개 섹션 독립 LLM 호출** (Abstract / Introduction / Related Work / Methodology / Experiments / Discussion / Conclusion)
+- 각 섹션 전용 프롬프트로 품질 대폭 향상 (섹션당 최대 3,000 토큰)
+- 섹션 생성 완료 시 대시보드 로그에 실시간 표시 (`✓ Section: ...`)
+- Strategy 모드: 7개 섹션 (Executive Summary / Background / Landscape / Issues / Implications / Recommendations / Conclusion)
+
+#### 실험 섹션 강화 (agents/executor.py)
+- `generate_tables()` 메서드 추가 (Worker 모델 호출)
+- **3종 비교 테이블 자동 생성**: 모델 성능 비교 / 실험 환경 / Ablation Study
+- 테이블이 Writer의 Experiments 섹션 프롬프트에 직접 주입 → 결과 분석 자동화
+
+#### 그림·차트 자동 생성 (agents/figure_builder.py 신규)
+- Matplotlib 기반 **성능 비교 바 차트** 자동 생성 (제안 방법 오렌지색 강조)
+- **Ablation Study 수평 바 차트** 자동 생성
+- PNG bytes 형태로 `state.figures`에 저장
+
+#### 결론 섹션 완성 강제
+- `_enforce_conclusion()`: Conclusion < 200자이면 Future Work 자동 보완
+- Conclusion 프롬프트에 `### 6.1 Summary` + `### 6.2 Future Work` 구조 강제
+- Future Work 3개 방향 이상 의무화
+
+#### Word/PDF 품질 향상 (utils/export.py)
+- **마크다운 테이블 자동 파싱** → Word 표 변환 (헤더 색상·줄무늬·셀 정렬)
+- **그림 자동 삽입**: Word `doc.add_picture()` + 이탤릭 캡션
+- PDF 표 렌더링: 헤더 색상 배경 + 줄무늬 행
+- PDF 그림 삽입: `pdf.image()` + 캡션
+- 문서 말미에 "Figures" appendix 섹션 자동 추가
+- `to_docx()` / `to_pdf()` 시그니처에 `figures: list` 파라미터 추가
+
+#### 상태 관리 (core/state.py)
+- `section_documents: dict` — 섹션별 생성 텍스트 저장
+- `experiment_tables: dict` — 생성된 마크다운 테이블
+- `figures: list` — `{title, caption, png_bytes}` 목록
+
+#### 대시보드 (app.py)
+- 버전 배지 v2.0.0 → **v3.0.0**
+- 섹션 완료 실시간 감지 (`section_progress` session state)
+- `figures` session state → 다운로드 시 Word/PDF에 자동 포함
+
+---
+
 ## v2.0.0 (2026-06-29)
 
 ### New Features

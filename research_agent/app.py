@@ -63,8 +63,10 @@ _DEFAULTS = {
     "start_time": None,
     "view_file": None,     # 이전 결과 보기: 선택된 파일 경로
     "view_md": None,       # 이전 결과 보기: 로드된 내용
-    "show_history": False, # 이력 대시보드 표시 여부
-    "similar_items": [],   # 유사 연구 경고 목록
+    "show_history": False,   # 이력 대시보드 표시 여부
+    "similar_items": [],     # 유사 연구 경고 목록
+    "figures": [],           # 생성된 그림 목록
+    "section_progress": [],  # 완료된 섹션 목록
 }
 for _k, _v in _DEFAULTS.items():
     if _k not in st.session_state:
@@ -181,15 +183,16 @@ st.markdown("""<style>
 # ─── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
-        '## 🔬 Research Agent &nbsp; <span class="version-badge">v2.0.0</span>',
+        '## 🔬 Research Agent &nbsp; <span class="version-badge">v3.0.0</span>',
         unsafe_allow_html=True,
     )
     st.markdown(
         '<div class="v2-feature-box">'
-        '✦ 연구 이력 DB (SQLite)<br>'
-        '✦ 유사 연구 중복 체크<br>'
-        '✦ IEEE / APA 참고문헌 자동 생성<br>'
-        '✦ 병렬 검색 10쿼리 · 리뷰 루브릭 강화'
+        '✦ 섹션별 분할 생성 (7개 섹션 독립 호출)<br>'
+        '✦ 모델 비교·Ablation 테이블 자동 생성<br>'
+        '✦ Matplotlib 성능 차트 → Word/PDF 삽입<br>'
+        '✦ Conclusion + Future Work 완성 강제<br>'
+        '✦ v2: 이력 DB · 중복체크 · IEEE/APA 참고문헌'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -366,6 +369,7 @@ if st.session_state.running and _log_q:
                     path = res["result"]["output_path"]
                     st.session_state.output_path = path
                     st.session_state.result_md   = Path(path).read_text(encoding="utf-8")
+                    st.session_state.figures     = res["result"].get("figures", [])
                     st.session_state.done        = True
                     st.session_state.current_stage = 7   # all done
                     for i in range(1, 7):
@@ -388,6 +392,11 @@ if st.session_state.running and _log_q:
             break
         elif kind == "log":
             st.session_state.logs.append(text)
+            # 섹션 완료 감지 (WriterAgent 출력)
+            if "✓ Section:" in text:
+                sec = text.split("✓ Section:")[-1].strip()
+                if sec not in st.session_state.section_progress:
+                    st.session_state.section_progress.append(sec)
             stage = _detect_stage(text)
             if stage:
                 prev = st.session_state.current_stage
@@ -407,7 +416,7 @@ if st.session_state.running and _log_q:
 # ═══════════════════════════════════════════════════════════════
 st.markdown(
     '## 🔬 Multi-Agent Research System &nbsp;'
-    '<span class="version-badge">v2.0.0</span>',
+    '<span class="version-badge">v3.0.0</span>',
     unsafe_allow_html=True,
 )
 
@@ -686,7 +695,8 @@ if st.session_state.done and st.session_state.result_md:
         try:
             st.download_button(
                 "📝 Word (.docx) 다운로드",
-                data=to_docx(md, title, mode=st.session_state.mode_val),
+                data=to_docx(md, title, mode=st.session_state.mode_val,
+                             figures=st.session_state.get("figures", [])),
                 file_name=f"research_{ts}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 use_container_width=True,
@@ -697,7 +707,8 @@ if st.session_state.done and st.session_state.result_md:
         try:
             st.download_button(
                 "🖨️ PDF 다운로드",
-                data=to_pdf(md, title, mode=st.session_state.mode_val),
+                data=to_pdf(md, title, mode=st.session_state.mode_val,
+                            figures=st.session_state.get("figures", [])),
                 file_name=f"research_{ts}.pdf",
                 mime="application/pdf",
                 use_container_width=True,
