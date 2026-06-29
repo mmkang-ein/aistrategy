@@ -18,9 +18,9 @@ PLAN_PROMPT_ACADEMIC = """
 
 다음 JSON 형식으로 학술 연구 계획을 수립하세요.
 search_queries는 정확히 10개를 생성하되, 아래 유형을 반드시 포함하세요:
-- arxiv 최신 논문용 (예: "site:arxiv.org 2024 2025 {핵심기술}")
-- survey/review 논문용 (예: "survey review {주제} deep learning 2024")
-- 벤치마크·SOTA 비교용 (예: "state-of-the-art benchmark {주제} 2025")
+- arxiv 최신 논문용 (예: "site:arxiv.org 2024 2025 {{핵심기술}}")
+- survey/review 논문용 (예: "survey review {{주제}} deep learning 2024")
+- 벤치마크·SOTA 비교용 (예: "state-of-the-art benchmark {{주제}} 2025")
 - 핵심 방법론·알고리즘명 직접 검색
 - 경쟁 기술·대안 접근법 비교
 - 실용 구현·오픈소스 검색
