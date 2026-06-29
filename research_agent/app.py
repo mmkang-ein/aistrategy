@@ -167,11 +167,32 @@ st.markdown("""<style>
 .stage-detail { background:#0f172a; border:1px solid #1e293b; border-radius:8px;
                 padding:12px 16px; margin:4px 0; font-size:13px; color:#cbd5e1; }
 .score-bar-wrap { background:#1e293b; border-radius:8px; padding:16px; margin:8px 0; }
+.version-badge {
+    display:inline-block; background:#1e3a5f; color:#60a5fa;
+    border:1px solid #2563eb; border-radius:6px;
+    font-size:11px; font-weight:700; padding:2px 8px; letter-spacing:.5px;
+}
+.v2-feature-box {
+    background:#0f1f0f; border:1px solid #166534; border-radius:8px;
+    padding:10px 14px; margin:8px 0; font-size:11px; color:#86efac; line-height:1.7;
+}
 </style>""", unsafe_allow_html=True)
 
 # ─── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 🔬 Research Agent")
+    st.markdown(
+        '## 🔬 Research Agent &nbsp; <span class="version-badge">v2.0.0</span>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="v2-feature-box">'
+        '✦ 연구 이력 DB (SQLite)<br>'
+        '✦ 유사 연구 중복 체크<br>'
+        '✦ IEEE / APA 참고문헌 자동 생성<br>'
+        '✦ 병렬 검색 10쿼리 · 리뷰 루브릭 강화'
+        '</div>',
+        unsafe_allow_html=True,
+    )
     st.divider()
 
     mode = st.selectbox(
@@ -384,7 +405,11 @@ if st.session_state.running and _log_q:
 # ═══════════════════════════════════════════════════════════════
 # MAIN UI
 # ═══════════════════════════════════════════════════════════════
-st.title("🔬 Multi-Agent Research System")
+st.markdown(
+    '## 🔬 Multi-Agent Research System &nbsp;'
+    '<span class="version-badge">v2.0.0</span>',
+    unsafe_allow_html=True,
+)
 
 _no_active = (
     not st.session_state.running
