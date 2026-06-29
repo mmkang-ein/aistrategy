@@ -19,6 +19,13 @@ from datetime import datetime
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
 
+# ─── History DB 초기화 ────────────────────────────────────────
+from core.history_db import init_db, save_research, get_all_history, find_similar
+init_db()
+
+# ─── Export 유틸 ──────────────────────────────────────────────
+from utils.export import to_docx, to_pdf
+
 st.set_page_config(
     page_title="Research Agent",
     page_icon="🔬",
@@ -54,8 +61,10 @@ _DEFAULTS = {
     "mode_val": "academic",
     "elapsed": 0,
     "start_time": None,
-    "view_file": None,   # 이전 결과 보기: 선택된 파일 경로
-    "view_md": None,     # 이전 결과 보기: 로드된 내용
+    "view_file": None,     # 이전 결과 보기: 선택된 파일 경로
+    "view_md": None,       # 이전 결과 보기: 로드된 내용
+    "show_history": False, # 이력 대시보드 표시 여부
+    "similar_items": [],   # 유사 연구 경고 목록
 }
 for _k, _v in _DEFAULTS.items():
     if _k not in st.session_state:
@@ -142,124 +151,6 @@ def _parse_review_score(text):
     return float(m.group(1)) if m else None
 
 
-# ─── Export: Word ─────────────────────────────────────────────
-def _to_docx(md_text, title):
-    from docx import Document
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-
-    doc = Document()
-    doc.styles["Normal"].font.name = "맑은 고딕"
-
-    h = doc.add_heading(title, 0)
-    h.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p = doc.add_paragraph(f"생성: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    doc.add_paragraph()
-
-    code_block = False
-    for line in md_text.split("\n"):
-        if line.startswith("```"):
-            code_block = not code_block
-            continue
-        if code_block:
-            doc.add_paragraph(line).style = "No Spacing"
-            continue
-        if line.startswith("# "):
-            doc.add_heading(line[2:].strip(), 1)
-        elif line.startswith("## "):
-            doc.add_heading(line[3:].strip(), 2)
-        elif line.startswith("### "):
-            doc.add_heading(line[4:].strip(), 3)
-        elif line.startswith("#### "):
-            doc.add_heading(line[5:].strip(), 4)
-        elif re.match(r"^-{3,}$", line.strip()):
-            doc.add_paragraph("─" * 40)
-        elif line.strip():
-            p = doc.add_paragraph()
-            for part in re.split(r"(\*\*.*?\*\*|\*.*?\*)", line):
-                if part.startswith("**") and part.endswith("**"):
-                    p.add_run(part[2:-2]).bold = True
-                elif part.startswith("*") and part.endswith("*"):
-                    p.add_run(part[1:-1]).italic = True
-                else:
-                    p.add_run(re.sub(r"`([^`]+)`", r"\1", part))
-        else:
-            doc.add_paragraph()
-
-    buf = io.BytesIO()
-    doc.save(buf)
-    buf.seek(0)
-    return buf.getvalue()
-
-
-# ─── Export: PDF ──────────────────────────────────────────────
-def _to_pdf(md_text, title):
-    from fpdf import FPDF
-
-    class PDF(FPDF):
-        def header(self):
-            self.set_font_size(8)
-            self.set_text_color(150)
-            self.cell(0, 8, "Multi-Agent Research System", align="R")
-            self.ln(2)
-        def footer(self):
-            self.set_y(-12)
-            self.set_font_size(8)
-            self.set_text_color(150)
-            self.cell(0, 8, f"- {self.page_no()} -", align="C")
-
-    pdf = PDF(orientation="P", unit="mm", format="A4")
-    pdf.set_auto_page_break(auto=True, margin=18)
-    pdf.set_margins(20, 20, 20)
-
-    font_name = "Helvetica"
-    for fp in [r"C:\Windows\Fonts\malgun.ttf", r"C:\Windows\Fonts\NanumGothic.ttf"]:
-        if os.path.exists(fp):
-            try:
-                pdf.add_font("KR", fname=fp)
-                font_name = "KR"
-            except Exception:
-                pass
-            break
-
-    def sf(size=10, bold=False):
-        pdf.set_font(font_name, style="B" if bold and font_name == "Helvetica" else "", size=size)
-
-    def cell(txt):
-        try:
-            pdf.multi_cell(0, 6, txt)
-        except Exception:
-            pdf.multi_cell(0, 6, txt.encode("latin-1", errors="replace").decode("latin-1"))
-
-    pdf.add_page()
-    sf(15, bold=True); pdf.set_text_color(20, 80, 160)
-    pdf.multi_cell(0, 10, title, align="C")
-    sf(8); pdf.set_text_color(120)
-    pdf.cell(0, 6, datetime.now().strftime("%Y-%m-%d %H:%M"), align="C")
-    pdf.ln(8); pdf.set_text_color(0)
-
-    code_block = False
-    for line in md_text.split("\n"):
-        if line.startswith("```"):
-            code_block = not code_block; continue
-        clean = re.sub(r"\*\*(.*?)\*\*|\*(.*?)\*|`([^`]+)`",
-                       lambda m: m.group(1) or m.group(2) or m.group(3), line)
-        if code_block:
-            sf(8); pdf.set_text_color(60); cell(line or " "); pdf.set_text_color(0); continue
-        if line.startswith("# "):
-            pdf.ln(4); sf(13, bold=True); pdf.set_text_color(20, 80, 160); cell(line[2:].strip()); pdf.set_text_color(0)
-        elif line.startswith("## "):
-            pdf.ln(3); sf(11, bold=True); pdf.set_text_color(40, 100, 170); cell(line[3:].strip()); pdf.set_text_color(0)
-        elif line.startswith("### "):
-            pdf.ln(2); sf(10, bold=True); pdf.set_text_color(60, 120, 180); cell(line[4:].strip()); pdf.set_text_color(0)
-        elif re.match(r"^-{3,}$", line.strip()):
-            pdf.ln(1); pdf.set_draw_color(200); pdf.line(20, pdf.get_y(), 190, pdf.get_y()); pdf.ln(3)
-        elif clean.strip():
-            sf(10); cell(clean)
-        else:
-            pdf.ln(3)
-
-    return bytes(pdf.output())
 
 
 # ─── CSS ──────────────────────────────────────────────────────
@@ -308,11 +199,28 @@ with st.sidebar:
         use_container_width=True, type="primary",
     )
 
+    # 유사 연구 경고
+    if st.session_state.similar_items and not st.session_state.running:
+        st.warning(f"⚠️ 유사한 기존 연구 {len(st.session_state.similar_items)}건 발견")
+        for s in st.session_state.similar_items[:3]:
+            sim_pct = int(s['similarity'] * 100)
+            short = s['topic'][:40] + ("…" if len(s['topic']) > 40 else "")
+            date  = s['created_at'][:10]
+            score = f"점수 {s['score']:.2f}" if s['score'] else "점수 없음"
+            st.caption(f"• [{sim_pct}%] {short} ({date}, {score})")
+
     if not st.session_state.running and (st.session_state.done or st.session_state.error):
         if st.button("🔄 초기화", use_container_width=True):
             for k in list(st.session_state.keys()):
                 del st.session_state[k]
             st.rerun()
+
+    # 이력 대시보드 토글
+    st.divider()
+    hist_label = "✖ 이력 닫기" if st.session_state.show_history else "📊 연구 이력 보기"
+    if st.button(hist_label, use_container_width=True, disabled=st.session_state.running):
+        st.session_state.show_history = not st.session_state.show_history
+        st.rerun()
 
     # 사이드바 진행 상태
     if st.session_state.running:
@@ -386,6 +294,10 @@ with st.sidebar:
 
 # ─── Start pipeline ───────────────────────────────────────────
 if run_btn and topic.strip() and not st.session_state.running:
+    # 유사 연구 체크
+    similar = find_similar(topic.strip(), threshold=0.4)
+    st.session_state.similar_items = similar
+
     lq = queue.Queue()
     rq = queue.Queue()
     st.session_state._log_q    = lq
@@ -406,6 +318,7 @@ if run_btn and topic.strip() and not st.session_state.running:
     st.session_state.start_time   = time.time()
     st.session_state.view_file    = None
     st.session_state.view_md      = None
+    st.session_state.show_history = False
 
     threading.Thread(
         target=_run_pipeline,
@@ -436,8 +349,19 @@ if st.session_state.running and _log_q:
                     st.session_state.current_stage = 7   # all done
                     for i in range(1, 7):
                         st.session_state.stage_done.add(i)
+                    final_score = None
                     if st.session_state.review_scores:
-                        st.session_state.final_score = st.session_state.review_scores[-1]
+                        final_score = st.session_state.review_scores[-1]
+                        st.session_state.final_score = final_score
+                    # 연구 이력 저장
+                    duration = int(time.time() - (st.session_state.start_time or time.time()))
+                    save_research(
+                        topic=st.session_state.topic_val,
+                        mode=st.session_state.mode_val,
+                        score=final_score,
+                        output_path=path,
+                        duration_sec=duration,
+                    )
                 else:
                     st.session_state.error = res.get("error", "알 수 없는 오류")
             break
@@ -467,7 +391,82 @@ _no_active = (
     and not st.session_state.done
     and not st.session_state.error
 )
-if _no_active and not st.session_state.view_md:
+
+# ─── 이력 대시보드 ────────────────────────────────────────────
+if st.session_state.show_history and not st.session_state.running:
+    st.subheader("📊 연구 이력 대시보드")
+    history = get_all_history(limit=100)
+
+    if not history:
+        st.info("저장된 연구 이력이 없습니다. 첫 연구를 시작해보세요!")
+    else:
+        # 요약 메트릭
+        scores = [h["score"] for h in history if h["score"] is not None]
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("총 연구 수", len(history))
+        m2.metric("평균 점수", f"{sum(scores)/len(scores):.2f}" if scores else "—")
+        m3.metric("최고 점수", f"{max(scores):.2f}" if scores else "—")
+        m4.metric("학술 / 전략", f"{sum(1 for h in history if h['mode']=='academic')} / {sum(1 for h in history if h['mode']=='strategy')}")
+
+        st.divider()
+
+        # 필터
+        fc1, fc2 = st.columns([1, 3])
+        with fc1:
+            mode_filter = st.selectbox("모드 필터", ["전체", "academic", "strategy"], key="hist_mode")
+        with fc2:
+            search_q = st.text_input("주제 검색", placeholder="키워드 입력...", key="hist_search")
+
+        filtered = history
+        if mode_filter != "전체":
+            filtered = [h for h in filtered if h["mode"] == mode_filter]
+        if search_q.strip():
+            sq = search_q.strip().lower()
+            filtered = [h for h in filtered if sq in h["topic"].lower()]
+
+        st.caption(f"{len(filtered)}건 표시")
+
+        # 이력 카드
+        for h in filtered:
+            score     = h["score"]
+            sc_color  = "#22c55e" if score and score >= 0.7 else ("#f59e0b" if score and score >= 0.5 else "#ef4444")
+            sc_txt    = f"{score:.2f}" if score else "—"
+            mode_badge = "📄 학술" if h["mode"] == "academic" else "📊 전략"
+            dur_min   = f"{h['duration_sec']//60}분 {h['duration_sec']%60}초" if h["duration_sec"] else "—"
+            date_str  = h["created_at"][:16].replace("T", " ")
+            out_name  = Path(h["output_path"]).name if h["output_path"] else "—"
+
+            with st.expander(f"{mode_badge}  {h['topic'][:60]}  —  {date_str}"):
+                c1, c2, c3 = st.columns(3)
+                c1.markdown(f"**점수** <span style='color:{sc_color};font-size:20px;font-weight:800'>{sc_txt}</span>", unsafe_allow_html=True)
+                c2.markdown(f"**소요시간** {dur_min}")
+                c3.markdown(f"**파일** `{out_name}`")
+
+                out_path = Path(h["output_path"]) if h["output_path"] else None
+                if out_path and out_path.exists():
+                    md_content = out_path.read_text(encoding="utf-8")
+                    bcol1, bcol2 = st.columns(2)
+                    with bcol1:
+                        if st.button("📖 결과 보기", key=f"view_{h['id']}"):
+                            st.session_state.view_file = out_path
+                            st.session_state.view_md   = md_content
+                            st.session_state.show_history = False
+                            st.rerun()
+                    with bcol2:
+                        st.download_button(
+                            "⬇️ MD 다운로드",
+                            data=md_content.encode("utf-8"),
+                            file_name=out_name,
+                            mime="text/markdown",
+                            key=f"dl_{h['id']}",
+                        )
+                else:
+                    st.caption("⚠️ 결과 파일 없음 (삭제되었거나 경로 변경됨)")
+
+    if not st.session_state.running and not st.session_state.done:
+        st.stop()
+
+if _no_active and not st.session_state.view_md and not st.session_state.show_history:
     st.info("👈 사이드바에서 연구 모드와 주제를 입력한 후 **연구 시작** 버튼을 클릭하세요.")
     st.stop()
 
@@ -477,6 +476,8 @@ if _no_active and st.session_state.view_md:
     _v_path = st.session_state.view_file
     _v_name = _v_path.stem if _v_path else "결과"
     _v_ts   = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # 파일명에서 모드 추출
+    _v_mode = "strategy" if (_v_path and _v_path.name.startswith("strategy_")) else "academic"
 
     st.info(f"📂 **이전 결과 보기** — `{_v_path.name if _v_path else ''}`")
 
@@ -494,7 +495,7 @@ if _no_active and st.session_state.view_md:
         try:
             st.download_button(
                 "📝 Word (.docx) 다운로드",
-                data=_to_docx(_v_md, _v_name),
+                data=to_docx(_v_md, _v_name, mode=_v_mode),
                 file_name=f"{_v_name}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 use_container_width=True,
@@ -505,7 +506,7 @@ if _no_active and st.session_state.view_md:
         try:
             st.download_button(
                 "🖨️ PDF 다운로드",
-                data=_to_pdf(_v_md, _v_name),
+                data=to_pdf(_v_md, _v_name, mode=_v_mode),
                 file_name=f"{_v_name}.pdf",
                 mime="application/pdf",
                 use_container_width=True,
@@ -660,7 +661,7 @@ if st.session_state.done and st.session_state.result_md:
         try:
             st.download_button(
                 "📝 Word (.docx) 다운로드",
-                data=_to_docx(md, title),
+                data=to_docx(md, title, mode=st.session_state.mode_val),
                 file_name=f"research_{ts}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 use_container_width=True,
@@ -671,7 +672,7 @@ if st.session_state.done and st.session_state.result_md:
         try:
             st.download_button(
                 "🖨️ PDF 다운로드",
-                data=_to_pdf(md, title),
+                data=to_pdf(md, title, mode=st.session_state.mode_val),
                 file_name=f"research_{ts}.pdf",
                 mime="application/pdf",
                 use_container_width=True,

@@ -13,13 +13,14 @@ from config.settings import (
 from core.logger import get_logger
 from core.state import ResearchState
 
-from agents.manager    import ManagerAgent
-from agents.searcher   import SearcherAgent
-from agents.summarizer import SummarizerAgent
-from agents.ideation   import IdeationAgent
-from agents.executor   import ExecutorAgent
-from agents.reviewer   import ReviewerAgent
-from agents.writer     import WriterAgent
+from agents.manager           import ManagerAgent
+from agents.searcher          import SearcherAgent
+from agents.summarizer        import SummarizerAgent
+from agents.ideation          import IdeationAgent
+from agents.executor          import ExecutorAgent
+from agents.reviewer          import ReviewerAgent
+from agents.writer            import WriterAgent
+from agents.reference_builder import ReferenceBuilder
 
 logger = get_logger(__name__)
 
@@ -52,6 +53,7 @@ class ResearchPipeline:
         self.executor   = ExecutorAgent(mode, verbose)
         self.reviewer   = ReviewerAgent(mode, verbose)
         self.writer     = WriterAgent(mode, verbose)
+        self.ref_builder = ReferenceBuilder(mode, verbose)
 
     def _print_stage(self, stage_num: int):
         label = STAGE_LABELS.get(stage_num, f"Stage {stage_num}")
@@ -129,6 +131,11 @@ class ResearchPipeline:
 
         # ── Stage 6: Output ───────────────────────────────────
         self._print_stage(6)
+        queries = self.state.plan.get("search_queries", [])
+        refs = await self.ref_builder.build(self.state.summaries, queries)
+        self.state.references = refs
+        print(f"  참고문헌 {len(refs)}건 생성")
+
         document = await self.writer.write(self.state)
         self.state.final_document = document
 

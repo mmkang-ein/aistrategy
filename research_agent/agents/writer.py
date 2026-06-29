@@ -51,8 +51,6 @@ WRITE_PROMPT_ACADEMIC = """
 
 ## 6. Conclusion
 
-## References
-(수집 자료 기반)
 """
 
 WRITE_PROMPT_STRATEGY = """
@@ -89,7 +87,6 @@ WRITE_PROMPT_STRATEGY = """
 
 ## 6. 결론
 
-## 참고자료
 """
 
 
@@ -145,6 +142,13 @@ class WriterAgent(BaseAgent):
             max_tokens=MAX_TOKENS_WRITER,
             temperature=0.6
         )
+
+        # 참고문헌 섹션 추가
+        if state.references:
+            style = "IEEE" if self.mode == "academic" else "APA"
+            ref_header = f"\n\n## References ({style})\n\n"
+            ref_lines = "\n\n".join(state.references)
+            document += ref_header + ref_lines
 
         # 코드 첨부 (academic 모드)
         if self.mode == "academic" and state.code_snippet:

@@ -30,6 +30,7 @@ class ResearchState:
     reviews: list = field(default_factory=list)
 
     # Stage 6
+    references:     list = field(default_factory=list)
     final_document: str = ""
     output_path:    str = ""
 

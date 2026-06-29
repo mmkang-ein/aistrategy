@@ -25,7 +25,7 @@ MAX_TOKENS_WRITER  = 8192
 @dataclass
 class SearchConfig:
     max_results_per_query: int = 5
-    max_parallel_queries:  int = 5       # Lit Agent 병렬 수
+    max_parallel_queries:  int = 10      # Lit Agent 병렬 수
     search_timeout_sec:    int = 30
     sources_academic: list = field(default_factory=lambda: [
         "arxiv.org", "scholar.google.com", "semanticscholar.org",

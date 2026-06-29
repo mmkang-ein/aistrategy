@@ -55,7 +55,7 @@ class SearcherAgent(BaseAgent):
 
     async def search_parallel(self, queries: list[str], max_papers: int) -> list[dict]:
         """여러 쿼리를 병렬 실행, max_parallel 제한 적용"""
-        queries = queries[:self.cfg.max_parallel_queries]
+        queries = queries[:self.cfg.max_parallel_queries]  # 최대 10개
         semaphore = asyncio.Semaphore(self.cfg.max_parallel_queries)
 
         async def bounded_search(query, idx):
