@@ -5,9 +5,11 @@ cd /d "%~dp0"
 cls
 echo.
 echo  ============================================================
-echo    Research Agent - 연구자동화시스템 런처
-echo    Python 3.12 / 시스템 Python
+echo    Research Agent  v2.0.0
+echo    Multi-Agent Research Automation System
 echo  ============================================================
+echo.
+echo  경로: %~dp0
 echo.
 
 REM ── [STEP 1] 이미 실행 중이면 바로 열기 ─────────────────────
@@ -19,16 +21,25 @@ if %errorlevel%==0 (
     goto shortcut
 )
 
-REM ── [STEP 2] Python 3.12 확인 ────────────────────────────────
-echo  [1/4] Python 3.12 확인 중...
+REM ── [STEP 2] Python 감지: py -3.12 우선, 없으면 python ────────
+echo  [1/4] Python 확인 중...
+set PYTHON_CMD=
 py -3.12 --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo  [오류] Python 3.12 를 찾을 수 없습니다.
-    echo         python.org 에서 Python 3.12 를 설치하세요.
-    pause
-    exit /b 1
+if %errorlevel%==0 (
+    set PYTHON_CMD=py -3.12
+    for /f "tokens=*" %%v in ('py -3.12 --version 2^>^&1') do echo  [OK] %%v (py launcher)
+) else (
+    python --version >nul 2>&1
+    if %errorlevel%==0 (
+        set PYTHON_CMD=python
+        for /f "tokens=*" %%v in ('python --version 2^>^&1') do echo  [OK] %%v (system)
+    ) else (
+        echo  [오류] Python 을 찾을 수 없습니다.
+        echo         https://python.org 에서 Python 설치 후 PATH 에 추가하세요.
+        pause
+        exit /b 1
+    )
 )
-for /f "tokens=*" %%v in ('py -3.12 --version 2^>^&1') do echo  [OK] %%v
 echo.
 
 REM ── [STEP 3] git pull ────────────────────────────────────────
@@ -43,14 +54,14 @@ echo.
 
 REM ── [STEP 4] 패키지 확인 (import 체크 → 실패 시만 설치) ─────
 echo  [3/4] 패키지 확인 중...
-py -3.12 -c "import streamlit, anthropic, dotenv, docx, fpdf" >nul 2>&1
+%PYTHON_CMD% -c "import streamlit, anthropic, dotenv, docx, fpdf" >nul 2>&1
 if %errorlevel%==0 (
     echo  [OK] 모든 패키지 설치 확인됨
 ) else (
     echo  [INFO] 누락 패키지 설치 중... (최초 실행 시 수분 소요)
-    py -3.12 -m pip install -r "%~dp0requirements.txt" -q >nul 2>&1
-    py -3.12 -m pip install streamlit python-docx fpdf2 -q >nul 2>&1
-    py -3.12 -c "import streamlit, anthropic, dotenv, docx, fpdf" >nul 2>&1
+    %PYTHON_CMD% -m pip install -r "%~dp0requirements.txt" -q >nul 2>&1
+    %PYTHON_CMD% -m pip install streamlit python-docx fpdf2 -q >nul 2>&1
+    %PYTHON_CMD% -c "import streamlit, anthropic, dotenv, docx, fpdf" >nul 2>&1
     if %errorlevel% neq 0 (
         echo  [오류] 패키지 설치 실패. 인터넷 연결을 확인하세요.
         pause
@@ -68,7 +79,7 @@ if not exist "%~dp0.env" (
 
 REM ── [STEP 6] Streamlit 실행 ──────────────────────────────────
 echo  [4/4] Streamlit 앱 시작 중...
-start "ResearchAgent" /D "%~dp0" /min cmd /k "chcp 65001 >nul && py -3.12 -m streamlit run app.py --server.port 8601 --server.headless true --browser.gatherUsageStats false"
+start "ResearchAgent" /D "%~dp0" /min cmd /k "chcp 65001 >nul && %PYTHON_CMD% -m streamlit run app.py --server.port 8601 --server.headless true --browser.gatherUsageStats false"
 
 REM ── 서버 준비 대기 (최대 40초) ──────────────────────────────
 set /a tries=0
@@ -96,7 +107,7 @@ set "SHORTCUT=%USERPROFILE%\Desktop\연구자동화시스템.lnk"
 if exist "%SHORTCUT%" goto done
 echo.
 echo  [INFO] 바탕화면 바로가기 생성 중...
-powershell -NoProfile -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%');$s.TargetPath='%~f0';$s.WorkingDirectory='%~dp0';$s.Description='연구 자동화 시스템';$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,13';$s.Save()"
+powershell -NoProfile -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%');$s.TargetPath='%~f0';$s.WorkingDirectory='%~dp0';$s.Description='Research Agent v2.0.0';$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,13';$s.Save()"
 if exist "%SHORTCUT%" echo  [OK] 바탕화면 바로가기 생성 완료!
 
 :done
