@@ -146,18 +146,29 @@ class ResearchPipeline:
             self.state.experiment_tables = tables
             print(f"  비교 테이블 {len(tables)}개 생성")
 
-        # 6-c: 섹션별 분할 문서 작성
+        # 6-c: 그림 생성 (모든 모드 — writer 전에 실행해 경로를 state에 보관)
+        figures = self.figure_builder.build(self.state)
+        self.state.figures = figures
+        if figures:
+            print(f"  그림 {len(figures)}개 생성 완료")
+
+        # 6-d: 섹션별 분할 문서 작성
         def _section_cb(section_name: str, content: str):
             self.state.section_documents[section_name] = content
 
         document = await self.writer.write(self.state, section_callback=_section_cb)
-        self.state.final_document = document
 
-        # 6-d: 그림 생성 (academic 전용, 테이블 필요)
-        if self.mode == "academic" and self.state.experiment_tables:
-            figures = self.figure_builder.build(self.state)
-            self.state.figures = figures
-            print(f"  그림 {len(figures)}개 생성")
+        # 6-e: ## Figures 섹션 자동 추가
+        if figures:
+            figs_md = "\n\n## Figures\n\n"
+            for fig in figures:
+                figs_md += f"### {fig['title']}\n\n"
+                figs_md += f"_{fig['caption']}_\n\n"
+                if fig.get("path"):
+                    figs_md += f"[Saved: `{fig['path']}`]\n\n"
+            document = document + figs_md
+
+        self.state.final_document = document
 
         output_path = self._save_output(document)
         self.state.output_path = str(output_path)

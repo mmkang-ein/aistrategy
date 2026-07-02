@@ -1,5 +1,32 @@
 # CHANGELOG
 
+## v3.1.0 (2026-07-02)
+
+### 핵심 목표: 논문 출력 품질 자동화 — 4종 그림·테마 테이블·인라인 삽입
+
+#### 그림 4종 자동 생성 (agents/figure_builder.py 전면 개선)
+- **Figure 1: 아키텍처 다이어그램** — 실험 steps 기반 박스+화살표 플로우 (matplotlib Fancy Patch)
+  - 제안 모듈(중앙) 오렌지 강조, 지원 컴포넌트 블루 그라데이션
+  - `★ Proposed` 레이블·범례 자동 표시
+- **Figure 2: 성능 비교 바 차트** — model_comparison 테이블 파싱, 제안 방법 오렌지 강조
+- **Figure 3: Ablation Study 수평 바 차트** — ablation 테이블 파싱
+- **Figure 4: 리뷰 점수 레이더 차트** (신규) — 3개 페르소나 점수 + Overall·Feasibility·Clarity 6축 레이더
+- 모든 그림 PNG → `outputs/figures/figure_N_*.png` 자동 저장
+- **모든 모드** (academic·strategy) 에 적용 (`if self.mode == "academic"` 제거)
+
+#### 파이프라인 개선 (core/pipeline.py)
+- **그림 생성 시점 변경**: Stage 6-d(Writer 후) → **6-c(Writer 전)** — state.figures 경로를 Writer가 참조 가능
+- `## Figures 섹션 자동 추가` (6-e): 최종 문서에 그림 제목·캡션·파일경로 마크다운으로 삽입
+- 모든 모드에서 그림 생성 실행
+
+#### Word/PDF 출력 품질 향상 (utils/export.py)
+- **Word 테이블**: `_xml_cell_border()` 추가 — 헤더 흰색 테두리, 데이터 셀 명시적 `#CCCCCC` 테두리 XML (모든 Word 버전에서 일관 렌더링)
+- **PDF 테이블**: 짝수 행 교차 음영을 하드코딩 파란색(`235,240,255`) → **테마 `light` 색상** 사용 (strategy 모드에서 연두색 적용)
+- **인라인 그림 삽입**: `## Figures` 섹션이 마크다운에 존재하면 `### Figure N:` 헤딩 위치에 PNG 직접 삽입 (캡션·저장경로 줄 자동 스킵)
+- 구버전 문서(Figures 섹션 없음) 호환: appendix 방식 폴백
+
+---
+
 ## v3.0.0 (2026-06-30)
 
 ### 핵심 목표: 논문 완성도 향상

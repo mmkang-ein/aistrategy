@@ -205,8 +205,25 @@ def _xml_shading_cell(cell, fill_hex: str):
     tcPr.append(shd)
 
 
+def _xml_cell_border(cell, color_hex: str = "BBBBBB"):
+    """셀 4면 명시적 테두리 (XML) — 일관된 렌더링 보장"""
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    tcBorders = OxmlElement("w:tcBorders")
+    for side in ("top", "left", "bottom", "right"):
+        b = OxmlElement(f"w:{side}")
+        b.set(qn("w:val"),   "single")
+        b.set(qn("w:sz"),    "4")
+        b.set(qn("w:space"), "0")
+        b.set(qn("w:color"), color_hex)
+        tcBorders.append(b)
+    tcPr.append(tcBorders)
+
+
 def _docx_table(doc, headers: list, rows: list, color_rgb, pr_hex: str, lgt_hex: str):
-    """마크다운 테이블 → Word 표 (헤더 색상, 줄무늬)"""
+    """마크다운 테이블 → Word 표 (헤더 색상·줄무늬·명시적 테두리)"""
     from docx.shared import Pt, RGBColor, Cm
     from docx.enum.text import WD_ALIGN_PARAGRAPH
 
@@ -221,6 +238,7 @@ def _docx_table(doc, headers: list, rows: list, color_rgb, pr_hex: str, lgt_hex:
         h_text = headers[i] if i < len(headers) else ""
         cell.text = h_text
         _xml_shading_cell(cell, pr_hex)
+        _xml_cell_border(cell, "FFFFFF")
         for para in cell.paragraphs:
             para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for run in para.runs:
@@ -238,6 +256,7 @@ def _docx_table(doc, headers: list, rows: list, color_rgb, pr_hex: str, lgt_hex:
             cell.text = val
             if ri % 2 == 0:
                 _xml_shading_cell(cell, fill)
+            _xml_cell_border(cell, "CCCCCC")
             for para in cell.paragraphs:
                 for run in para.runs:
                     run.font.size = Pt(9)
@@ -271,8 +290,9 @@ def _docx_figure(doc, png_bytes: bytes, caption: str):
 
 
 def _pdf_table(pdf, headers: list, rows: list, R: int, G: int, B: int,
-               font_name: str = "Helvetica"):
-    """마크다운 테이블 → PDF 표"""
+               font_name: str = "Helvetica",
+               lgt: tuple = (232, 240, 255)):
+    """마크다운 테이블 → PDF 표 (테마 색상 적용)"""
     if not headers or not rows:
         return
     n_cols = max(len(headers), max((len(r) for r in rows), default=1))
@@ -293,7 +313,7 @@ def _pdf_table(pdf, headers: list, rows: list, R: int, G: int, B: int,
 
     for ri, row_data in enumerate(rows):
         if ri % 2 == 0:
-            pdf.set_fill_color(235, 240, 255)
+            pdf.set_fill_color(*lgt)
         else:
             pdf.set_fill_color(255, 255, 255)
         pdf.set_text_color(0, 0, 0)
@@ -400,11 +420,16 @@ def to_docx(md_text: str, title: str, mode: str = "academic",
     _xml_hr(doc)
 
     # ── 본문 파싱 ────────────────────────────────────────────
-    is_abstract = False
-    is_refs     = False
-    in_code     = False
-    code_buf: list[str] = []
-    table_buf:  list[str] = []
+    is_abstract    = False
+    is_refs        = False
+    in_figures_sec = False
+    in_code        = False
+    code_buf:  list[str] = []
+    table_buf: list[str] = []
+
+    # 인라인 Figures 섹션이 있으면 appendix 대신 인라인 삽입
+    has_inline_figs = bool(figures) and "## Figures" in md_text
+    figures_queue   = list(figures) if has_inline_figs else []
 
     lines_iter = md_text.split("\n")
     line_idx   = 0
@@ -447,7 +472,8 @@ def to_docx(md_text: str, title: str, mode: str = "academic",
             txt = _strip_inline(line[2:])
             if txt == title or txt == _strip_inline(title):
                 continue
-            is_abstract = False
+            is_abstract    = False
+            in_figures_sec = False
             is_refs = any(k in txt.lower() for k in ("references", "참고"))
             _docx_heading(doc, txt, 1, pr_color, 13,
                           uppercase=(mode == "academic"))
@@ -456,19 +482,31 @@ def to_docx(md_text: str, title: str, mode: str = "academic",
         # H2
         if line.startswith("## "):
             txt = _strip_inline(line[3:])
-            is_abstract = any(k in txt.lower() for k in ("abstract", "초록"))
-            is_refs     = any(k in txt.lower() for k in ("references", "참고"))
+            is_abstract    = any(k in txt.lower() for k in ("abstract", "초록"))
+            is_refs        = any(k in txt.lower() for k in ("references", "참고"))
+            in_figures_sec = "figures" in txt.lower()
             _docx_heading(doc, txt, 2, pr_color, 11,
                           space_before=8, space_after=3)
             continue
 
-        # H3
+        # H3 — Figures 섹션 내부이면 PNG 삽입
         if line.startswith("### "):
             is_abstract = False
             txt = _strip_inline(line[4:])
             _docx_heading(doc, txt, 3, pr_color, 10.5,
                           space_before=5, space_after=2)
+            if in_figures_sec and has_inline_figs and figures_queue:
+                fig = figures_queue.pop(0)
+                if fig.get("png_bytes"):
+                    _docx_figure(doc, fig["png_bytes"], fig.get("caption", ""))
             continue
+
+        # Figures 섹션 내 캡션·경로 줄 스킵 (이미 _docx_figure에서 캡션 삽입됨)
+        if in_figures_sec and has_inline_figs:
+            if stripped.startswith("_") and stripped.endswith("_"):
+                continue
+            if stripped.startswith("[Saved:"):
+                continue
 
         # H4
         if line.startswith("#### "):
@@ -522,8 +560,8 @@ def to_docx(md_text: str, title: str, mode: str = "academic",
         if headers and rows:
             _docx_table(doc, headers, rows, pr_color, pr_hex, lgt_hex)
 
-    # 그림 첨부 (figures appendix)
-    if figures:
+    # 그림 appendix — 인라인 섹션이 없는 경우에만 (구버전 호환)
+    if figures and not has_inline_figs:
         _docx_heading(doc, "Figures", 2, pr_color, 11, space_before=12, space_after=4)
         for fig in figures:
             if fig.get("png_bytes"):
@@ -705,10 +743,16 @@ def to_pdf(md_text: str, title: str, mode: str = "academic",
     pdf.add_page()
     pdf.set_x(pdf.l_margin)  # 커버 페이지 cursor 영향 초기화
 
-    in_code   = False
-    code_buf: list[str] = []
+    lgt = theme.get("light", (232, 240, 255))
+
+    in_code        = False
+    in_figures_sec = False
+    code_buf:  list[str] = []
     table_buf: list[str] = []
-    is_refs   = False
+    is_refs        = False
+
+    has_inline_figs = bool(figures) and "## Figures" in md_text
+    figures_queue   = list(figures) if has_inline_figs else []
 
     for line in md_text.split("\n"):
         # 코드 펜스
@@ -716,7 +760,7 @@ def to_pdf(md_text: str, title: str, mode: str = "academic",
             if table_buf:
                 headers, rows = _parse_md_table(table_buf)
                 if headers and rows:
-                    _pdf_table(pdf, headers, rows, R, G, B, font_name)
+                    _pdf_table(pdf, headers, rows, R, G, B, font_name, lgt=lgt)
                 table_buf.clear()
             if in_code:
                 _pdf_code(pdf, "\n".join(code_buf), font_name)
@@ -735,7 +779,7 @@ def to_pdf(md_text: str, title: str, mode: str = "academic",
             if table_buf:
                 headers, rows = _parse_md_table(table_buf)
                 if headers and rows:
-                    _pdf_table(pdf, headers, rows, R, G, B, font_name)
+                    _pdf_table(pdf, headers, rows, R, G, B, font_name, lgt=lgt)
                 table_buf.clear()
 
         clean = _strip_inline(line)
@@ -745,13 +789,13 @@ def to_pdf(md_text: str, title: str, mode: str = "academic",
             txt = _strip_inline(line[2:])
             if txt == title or txt == _strip_inline(title):
                 continue
-            is_refs = any(k in txt.lower() for k in ("references", "참고"))
+            is_refs        = any(k in txt.lower() for k in ("references", "참고"))
+            in_figures_sec = False
             pdf.ln(5)
             sf(13, bold=True)
             pdf.set_text_color(R, G, B)
             display = txt.upper() if mode == "academic" else txt
             _pdf_safe(pdf, display)
-            # 하단 구분선
             y = pdf.get_y()
             pdf.set_draw_color(R, G, B)
             pdf.set_line_width(0.5)
@@ -763,24 +807,29 @@ def to_pdf(md_text: str, title: str, mode: str = "academic",
         # H2
         elif line.startswith("## "):
             txt = _strip_inline(line[3:])
-            is_refs = any(k in txt.lower() for k in ("references", "참고"))
+            is_refs        = any(k in txt.lower() for k in ("references", "참고"))
+            in_figures_sec = "figures" in txt.lower()
             pdf.ln(4)
             sf(11, bold=True)
             pdf.set_text_color(R, G, B)
             _pdf_safe(pdf, txt)
             y = pdf.get_y()
-            pdf.set_draw_color(*[c + 60 for c in (R, G, B)])
+            pdf.set_draw_color(*[min(255, c + 60) for c in (R, G, B)])
             pdf.line(14, y, 196, y)
             pdf.ln(3)
             pdf.set_text_color(0, 0, 0)
 
-        # H3
+        # H3 — Figures 섹션이면 PNG 삽입
         elif line.startswith("### "):
             pdf.ln(3)
             sf(10, bold=True)
             pdf.set_text_color(R, G, B)
             _pdf_safe(pdf, _strip_inline(line[4:]))
             pdf.set_text_color(0, 0, 0)
+            if in_figures_sec and has_inline_figs and figures_queue:
+                fig = figures_queue.pop(0)
+                if fig.get("png_bytes"):
+                    _pdf_figure(pdf, fig["png_bytes"], fig.get("caption", ""), font_name)
 
         # H4
         elif line.startswith("#### "):
@@ -794,6 +843,18 @@ def to_pdf(md_text: str, title: str, mode: str = "academic",
             pdf.set_draw_color(180, 180, 180)
             pdf.line(14, pdf.get_y(), 196, pdf.get_y())
             pdf.ln(4)
+
+        # Figures 섹션 내 캡션·경로 줄 스킵
+        elif in_figures_sec and has_inline_figs:
+            stripped_ln = line.strip()
+            if (stripped_ln.startswith("_") and stripped_ln.endswith("_")) or \
+               stripped_ln.startswith("[Saved:"):
+                continue
+            elif clean:
+                sf(10)
+                _pdf_safe(pdf, clean, line_h=6)
+            else:
+                pdf.ln(3)
 
         # 본문
         elif clean:
@@ -823,10 +884,10 @@ def to_pdf(md_text: str, title: str, mode: str = "academic",
     if table_buf:
         headers, rows = _parse_md_table(table_buf)
         if headers and rows:
-            _pdf_table(pdf, headers, rows, R, G, B, font_name)
+            _pdf_table(pdf, headers, rows, R, G, B, font_name, lgt=lgt)
 
-    # 그림 첨부 (figures appendix)
-    if figures:
+    # 그림 appendix — 인라인 섹션이 없는 경우에만 (구버전 호환)
+    if figures and not has_inline_figs:
         pdf.ln(5)
         sf(11, bold=True)
         pdf.set_text_color(R, G, B)
