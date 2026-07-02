@@ -183,15 +183,15 @@ st.markdown("""<style>
 # ─── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
-        '## 🔬 Research Agent &nbsp; <span class="version-badge">v3.0.0</span>',
+        '## 🔬 Research Agent &nbsp; <span class="version-badge">v3.1.0</span>',
         unsafe_allow_html=True,
     )
     st.markdown(
         '<div class="v2-feature-box">'
         '✦ 섹션별 분할 생성 (7개 섹션 독립 호출)<br>'
         '✦ 모델 비교·Ablation 테이블 자동 생성<br>'
-        '✦ Matplotlib 성능 차트 → Word/PDF 삽입<br>'
-        '✦ Conclusion + Future Work 완성 강제<br>'
+        '✦ 아키텍처·성능·Ablation·레이더 4종 차트 자동<br>'
+        '✦ 그림 PNG → Word/PDF 인라인 삽입<br>'
         '✦ v2: 이력 DB · 중복체크 · IEEE/APA 참고문헌'
         '</div>',
         unsafe_allow_html=True,
@@ -333,16 +333,18 @@ if run_btn and topic.strip() and not st.session_state.running:
     st.session_state.current_stage = 0
     st.session_state.stage_logs   = {i: [] for i in range(1, 7)}
     st.session_state.stage_done   = set()
-    st.session_state.review_scores = []
-    st.session_state.final_score  = None
-    st.session_state.result_md    = None
-    st.session_state.output_path  = None
-    st.session_state.topic_val    = topic.strip()
-    st.session_state.mode_val     = mode
-    st.session_state.start_time   = time.time()
-    st.session_state.view_file    = None
-    st.session_state.view_md      = None
-    st.session_state.show_history = False
+    st.session_state.review_scores    = []
+    st.session_state.final_score      = None
+    st.session_state.result_md        = None
+    st.session_state.output_path      = None
+    st.session_state.topic_val        = topic.strip()
+    st.session_state.mode_val         = mode
+    st.session_state.start_time       = time.time()
+    st.session_state.view_file        = None
+    st.session_state.view_md          = None
+    st.session_state.show_history     = False
+    st.session_state.figures          = []
+    st.session_state.section_progress = []
 
     threading.Thread(
         target=_run_pipeline,
@@ -416,7 +418,7 @@ if st.session_state.running and _log_q:
 # ═══════════════════════════════════════════════════════════════
 st.markdown(
     '## 🔬 Multi-Agent Research System &nbsp;'
-    '<span class="version-badge">v3.0.0</span>',
+    '<span class="version-badge">v3.1.0</span>',
     unsafe_allow_html=True,
 )
 

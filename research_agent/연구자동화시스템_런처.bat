@@ -1,11 +1,11 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 cd /d "%~dp0"
 
 cls
 echo.
 echo  ============================================================
-echo    Research Agent  v2.0.0
+echo    Research Agent  v3.1.0
 echo    Multi-Agent Research Automation System
 echo  ============================================================
 echo.
@@ -54,14 +54,13 @@ echo.
 
 REM ── [STEP 4] 패키지 확인 (import 체크 → 실패 시만 설치) ─────
 echo  [3/4] 패키지 확인 중...
-%PYTHON_CMD% -c "import streamlit, anthropic, dotenv, docx, fpdf" >nul 2>&1
+%PYTHON_CMD% -c "import streamlit, anthropic, dotenv, docx, fpdf, matplotlib, numpy" >nul 2>&1
 if %errorlevel%==0 (
     echo  [OK] 모든 패키지 설치 확인됨
 ) else (
     echo  [INFO] 누락 패키지 설치 중... (최초 실행 시 수분 소요)
     %PYTHON_CMD% -m pip install -r "%~dp0requirements.txt" -q >nul 2>&1
-    %PYTHON_CMD% -m pip install streamlit python-docx fpdf2 -q >nul 2>&1
-    %PYTHON_CMD% -c "import streamlit, anthropic, dotenv, docx, fpdf" >nul 2>&1
+    %PYTHON_CMD% -c "import streamlit, anthropic, dotenv, docx, fpdf, matplotlib, numpy" >nul 2>&1
     if %errorlevel% neq 0 (
         echo  [오류] 패키지 설치 실패. 인터넷 연결을 확인하세요.
         pause
@@ -107,7 +106,7 @@ set "SHORTCUT=%USERPROFILE%\Desktop\연구자동화시스템.lnk"
 if exist "%SHORTCUT%" goto done
 echo.
 echo  [INFO] 바탕화면 바로가기 생성 중...
-powershell -NoProfile -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%');$s.TargetPath='%~f0';$s.WorkingDirectory='%~dp0';$s.Description='Research Agent v2.0.0';$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,13';$s.Save()"
+powershell -NoProfile -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%');$s.TargetPath='%~f0';$s.WorkingDirectory='%~dp0';$s.Description='Research Agent v3.1.0';$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,13';$s.Save()"
 if exist "%SHORTCUT%" echo  [OK] 바탕화면 바로가기 생성 완료!
 
 :done
