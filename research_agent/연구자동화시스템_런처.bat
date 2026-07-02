@@ -14,65 +14,74 @@ echo.
 
 REM ── [STEP 1] 이미 실행 중이면 바로 열기 ─────────────────────
 netstat -ano | findstr ":8601" | findstr "LISTENING" >nul 2>&1
-if %errorlevel%==0 (
+if not errorlevel 1 (
     echo  [OK] 이미 실행 중입니다.
     echo  브라우저에서 http://localhost:8601 을 엽니다...
     start http://localhost:8601
     goto shortcut
 )
 
-REM ── [STEP 2] Python 감지: py -3.12 우선, 없으면 python ────────
+REM ── [STEP 2] Python 감지: python 우선, 없으면 py -3.12 ───────
 echo  [1/4] Python 확인 중...
 set PYTHON_CMD=
-py -3.12 --version >nul 2>&1
-if %errorlevel%==0 (
-    set PYTHON_CMD=py -3.12
-    for /f "tokens=*" %%v in ('py -3.12 --version 2^>^&1') do echo  [OK] %%v (py launcher)
-) else (
-    python --version >nul 2>&1
-    if %errorlevel%==0 (
-        set PYTHON_CMD=python
-        for /f "tokens=*" %%v in ('python --version 2^>^&1') do echo  [OK] %%v (system)
-    ) else (
-        echo  [오류] Python 을 찾을 수 없습니다.
-        echo         https://python.org 에서 Python 설치 후 PATH 에 추가하세요.
-        pause
-        exit /b 1
-    )
+
+python -c "import sys; print('[OK] Python', sys.version.split()[0], '(python)')" 2>nul
+if not errorlevel 1 (
+    set PYTHON_CMD=python
+    goto python_ok
 )
+
+py -3.12 -c "import sys; print('[OK] Python', sys.version.split()[0], '(py -3.12)')" 2>nul
+if not errorlevel 1 (
+    set PYTHON_CMD=py -3.12
+    goto python_ok
+)
+
+echo  [오류] Python 을 찾을 수 없습니다.
+echo         https://python.org 에서 Python 설치 후 PATH 에 추가하세요.
+pause
+exit /b 1
+
+:python_ok
 echo.
 
 REM ── [STEP 3] git pull ────────────────────────────────────────
 echo  [2/4] 최신 코드 확인 중...
 git pull --autostash >nul 2>&1
-if %errorlevel%==0 (
+if not errorlevel 1 (
     echo  [OK] 코드 최신 상태
 ) else (
-    echo  [INFO] git pull 실패 — 현재 코드로 계속 진행
+    echo  [INFO] git pull 실패 - 현재 코드로 계속 진행
 )
 echo.
 
 REM ── [STEP 4] 패키지 확인 (import 체크 → 실패 시만 설치) ─────
 echo  [3/4] 패키지 확인 중...
 %PYTHON_CMD% -c "import streamlit, anthropic, dotenv, docx, fpdf, matplotlib, numpy" >nul 2>&1
-if %errorlevel%==0 (
+if not errorlevel 1 (
     echo  [OK] 모든 패키지 설치 확인됨
-) else (
-    echo  [INFO] 누락 패키지 설치 중... (최초 실행 시 수분 소요)
-    %PYTHON_CMD% -m pip install -r "%~dp0requirements.txt" -q >nul 2>&1
-    %PYTHON_CMD% -c "import streamlit, anthropic, dotenv, docx, fpdf, matplotlib, numpy" >nul 2>&1
-    if %errorlevel% neq 0 (
-        echo  [오류] 패키지 설치 실패. 인터넷 연결을 확인하세요.
-        pause
-        exit /b 1
-    )
-    echo  [OK] 패키지 설치 완료
+    goto packages_ok
 )
+
+echo  [INFO] 누락 패키지 설치 중... (최초 실행 시 수분 소요)
+%PYTHON_CMD% -m pip install -r "%~dp0requirements.txt" -q
+
+%PYTHON_CMD% -c "import streamlit, anthropic, dotenv, docx, fpdf, matplotlib, numpy" >nul 2>&1
+if not errorlevel 1 (
+    echo  [OK] 패키지 설치 완료
+    goto packages_ok
+)
+
+echo  [오류] 패키지 설치 실패. 인터넷 연결을 확인하세요.
+pause
+exit /b 1
+
+:packages_ok
 echo.
 
 REM ── [STEP 5] .env 확인 ───────────────────────────────────────
 if not exist "%~dp0.env" (
-    echo  [경고] .env 파일 없음 — ANTHROPIC_API_KEY 를 .env 에 입력하세요.
+    echo  [경고] .env 파일 없음 - ANTHROPIC_API_KEY 를 .env 에 입력하세요.
     echo.
 )
 
@@ -86,7 +95,7 @@ set /a tries=0
 timeout /t 1 >nul
 set /a tries=%tries%+1
 netstat -ano | findstr ":8601" | findstr "LISTENING" >nul 2>&1
-if %errorlevel%==0 goto server_ready
+if not errorlevel 1 goto server_ready
 if %tries% lss 40 goto wait_loop
 
 echo  [오류] 40초 내에 서버가 시작되지 않았습니다.
