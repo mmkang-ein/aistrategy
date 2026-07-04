@@ -27,7 +27,7 @@ init_db()
 from utils.export import to_docx, to_pdf
 
 # ─── 기존 논문 강화 유틸 ───────────────────────────────────────
-from tools.paper_enhancer import PaperEnhancer
+from tools.paper_enhancer import PaperEnhancer, _extract_title
 
 st.set_page_config(
     page_title="Research Agent",
@@ -230,7 +230,7 @@ def _render_paper_enhancer():
         m2.metric("추가된 테이블", f"{len(tables)}개")
 
         st.subheader("⬇️ 다운로드")
-        title = meta["name"].rsplit(".", 1)[0]
+        title = _doc_title(new_md, meta["name"].rsplit(".", 1)[0])
         d1, d2, d3 = st.columns(3)
         with d1:
             st.download_button(
@@ -321,6 +321,12 @@ def _enhance_label(subdir, path):
     badge = "📄" if subdir == "papers" else "📊"
     return f"{badge} {meta['name']}  ·  {meta['date']}  ·  {meta['size']}"
 
+def _doc_title(md_text, fallback):
+    """문서의 실제 제목(# H1)을 추출 — 표지/헤더에 파일명이 그대로 노출되지 않도록"""
+    t = _extract_title(md_text) if md_text else ""
+    return t if t and t != "Untitled" else fallback
+
+
 def _load_figures_from_md(md_text):
     """'## Figures' 섹션의 '[Saved: `path`]' 참조에서 실제 PNG 바이트를 로드
     (저장된 문서를 다시 열람/다운로드할 때 그림이 경로 텍스트로만 남지 않도록)"""
@@ -398,7 +404,7 @@ st.markdown("""<style>
 # ─── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
-        '## 🔬 Research Agent &nbsp; <span class="version-badge">v3.1.0</span>',
+        '## 🔬 Research Agent &nbsp; <span class="version-badge">v3.1.1</span>',
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -687,7 +693,7 @@ if st.session_state.running and _log_q:
 # ═══════════════════════════════════════════════════════════════
 st.markdown(
     '## 🔬 Multi-Agent Research System &nbsp;'
-    '<span class="version-badge">v3.1.0</span>',
+    '<span class="version-badge">v3.1.1</span>',
     unsafe_allow_html=True,
 )
 
@@ -789,6 +795,7 @@ if _no_active and st.session_state.view_md:
     # 파일명에서 모드 추출
     _v_mode = "strategy" if (_v_path and _v_path.name.startswith("strategy_")) else "academic"
     _v_figures = _load_figures_from_md(_v_md)
+    _v_title = _doc_title(_v_md, _v_name)
 
     st.info(f"📂 **이전 결과 보기** — `{_v_path.name if _v_path else ''}`")
 
@@ -806,7 +813,7 @@ if _no_active and st.session_state.view_md:
         try:
             st.download_button(
                 "📝 Word (.docx) 다운로드",
-                data=to_docx(_v_md, _v_name, mode=_v_mode, figures=_v_figures),
+                data=to_docx(_v_md, _v_title, mode=_v_mode, figures=_v_figures),
                 file_name=f"{_v_name}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 use_container_width=True,
@@ -817,7 +824,7 @@ if _no_active and st.session_state.view_md:
         try:
             st.download_button(
                 "🖨️ PDF 다운로드",
-                data=to_pdf(_v_md, _v_name, mode=_v_mode, figures=_v_figures),
+                data=to_pdf(_v_md, _v_title, mode=_v_mode, figures=_v_figures),
                 file_name=f"{_v_name}.pdf",
                 mime="application/pdf",
                 use_container_width=True,
@@ -951,7 +958,7 @@ if st.session_state.error:
 # ─── 5. Result ────────────────────────────────────────────────
 if st.session_state.done and st.session_state.result_md:
     md    = st.session_state.result_md
-    title = st.session_state.topic_val
+    title = _doc_title(md, st.session_state.topic_val)
     ts    = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     st.success(f"✅ 연구 완료!  |  `{Path(st.session_state.output_path).name}`")

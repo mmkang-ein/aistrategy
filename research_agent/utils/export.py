@@ -67,6 +67,213 @@ def _find_kr_font() -> str | None:
 
 
 # ══════════════════════════════════════════════════════════════
+# LaTeX 수식 → 일반 텍스트 전처리
+# ($...$, $$...$$ 를 Word/PDF 변환 전에 읽을 수 있는 평문으로 치환)
+# ══════════════════════════════════════════════════════════════
+
+# 내용만 남기고 명령어 자체는 버리는 래퍼 명령어 (\text{X} -> X)
+_MATH_UNWRAP_CMDS = [
+    "text", "mathrm", "mathcal", "mathbb", "mathbf", "mathsf", "mathnormal",
+    "boldsymbol", "textbf", "textit", "textrm", "emph", "operatorname",
+]
+
+# 인자를 감싸는 형태로 바꾸는 명령어 (\frac{a}{b} -> (a/b))
+_MATH_FUNC_CMDS = {
+    "overline":  "avg({})",
+    "bar":       "avg({})",
+    "hat":       "hat({})",
+    "tilde":     "approx({})",
+    "dot":       "d/dt({})",
+    "vec":       "vec({})",
+    "sqrt":      "sqrt({})",
+}
+
+# 기호/그리스 문자 명령어 (백슬래시 제외한 이름 -> 유니코드)
+_MATH_SYMBOLS = {
+    "alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ",
+    "epsilon": "ε", "varepsilon": "ε", "zeta": "ζ", "eta": "η",
+    "theta": "θ", "vartheta": "θ", "iota": "ι", "kappa": "κ",
+    "lambda": "λ", "mu": "μ", "nu": "ν", "xi": "ξ", "pi": "π",
+    "rho": "ρ", "sigma": "σ", "tau": "τ", "upsilon": "υ",
+    "phi": "φ", "varphi": "φ", "chi": "χ", "psi": "ψ", "omega": "ω",
+    "Gamma": "Γ", "Delta": "Δ", "Theta": "Θ", "Lambda": "Λ",
+    "Xi": "Ξ", "Pi": "Π", "Sigma": "Σ", "Upsilon": "Υ",
+    "Phi": "Φ", "Psi": "Ψ", "Omega": "Ω",
+    "cdot": "·", "times": "×", "pm": "±", "mp": "∓", "div": "÷",
+    "leq": "≤", "le": "≤", "geq": "≥", "ge": "≥",
+    "neq": "≠", "ne": "≠", "approx": "≈", "sim": "~",
+    "equiv": "≡", "propto": "∝",
+    "in": "∈", "notin": "∉", "subset": "⊂", "subseteq": "⊆",
+    "supset": "⊃", "supseteq": "⊇", "cup": "∪", "cap": "∩",
+    "emptyset": "∅", "forall": "∀", "exists": "∃",
+    "infty": "∞", "partial": "∂", "nabla": "∇",
+    "rightarrow": "→", "to": "→", "leftarrow": "←", "gets": "←",
+    "Rightarrow": "⇒", "Leftarrow": "⇐", "leftrightarrow": "↔",
+    "langle": "<", "rangle": ">",
+    "ldots": "…", "cdots": "⋯", "dots": "…",
+    "sum": "Σ", "prod": "Π", "int": "∫",
+    "top": "⊤", "bot": "⊥", "perp": "⊥",
+}
+
+
+def _brace_arg(s: str, i: int) -> tuple[str, int]:
+    """s[i] == '{' 라고 가정하고 (중괄호 안 내용, 닫는 중괄호 다음 위치)를 반환"""
+    depth = 0
+    for j in range(i, len(s)):
+        if s[j] == "{":
+            depth += 1
+        elif s[j] == "}":
+            depth -= 1
+            if depth == 0:
+                return s[i + 1:j], j + 1
+    return "", i + 1
+
+
+def _unwrap_command(expr: str, cmd: str) -> str:
+    """\\cmd{X} -> X"""
+    pattern = re.compile(r"\\" + cmd + r"\{")
+    while True:
+        m = pattern.search(expr)
+        if not m:
+            return expr
+        content, end = _brace_arg(expr, m.end() - 1)
+        expr = expr[:m.start()] + content + expr[end:]
+
+
+def _transform_command(expr: str, cmd: str, fmt: str) -> str:
+    """\\cmd{A}{B}... -> fmt.format(A, B, ...) (fmt 안의 '{}' 개수만큼 인자를 소비)"""
+    n_args = fmt.count("{}")
+    pattern = re.compile(r"\\" + cmd + r"\{")
+    while True:
+        m = pattern.search(expr)
+        if not m:
+            return expr
+        args, pos, ok = [], m.end() - 1, True
+        for _ in range(n_args):
+            if pos >= len(expr) or expr[pos] != "{":
+                ok = False
+                break
+            content, pos = _brace_arg(expr, pos)
+            args.append(content)
+        if not ok:
+            expr = expr[:m.start()] + expr[m.end():]
+            continue
+        expr = expr[:m.start()] + fmt.format(*args) + expr[pos:]
+
+
+def _transform_underbrace(expr: str) -> str:
+    """\\underbrace{A}_{B} -> A (B)"""
+    pattern = re.compile(r"\\underbrace\{")
+    while True:
+        m = pattern.search(expr)
+        if not m:
+            return expr
+        content, pos = _brace_arg(expr, m.end() - 1)
+        sub = ""
+        if expr[pos:pos + 2] == "_{":
+            sub, pos = _brace_arg(expr, pos + 1)
+        replacement = f"{content} ({sub})" if sub else content
+        expr = expr[:m.start()] + replacement + expr[pos:]
+
+
+def _latex_to_text(expr: str) -> str:
+    """LaTeX 수식 내용(구분자 $ 제외)을 사람이 읽을 수 있는 평문으로 변환"""
+    expr = expr.strip()
+
+    for _ in range(6):
+        prev = expr
+        expr = _transform_command(expr, "frac", "({}/{})")
+        expr = _transform_underbrace(expr)
+        for cmd, fmt in _MATH_FUNC_CMDS.items():
+            expr = _transform_command(expr, cmd, fmt)
+        for cmd in _MATH_UNWRAP_CMDS:
+            expr = _unwrap_command(expr, cmd)
+        if expr == prev:
+            break
+
+    # \left( \right] 등 - 구분자 문자만 남기고 명령어 제거
+    expr = re.sub(r"\\left\s*", "", expr)
+    expr = re.sub(r"\\right\s*", "", expr)
+
+    # 이스케이프된 특수문자 / 간격 명령
+    expr = expr.replace(r"\{", "{").replace(r"\}", "}")
+    expr = expr.replace(r"\%", "%").replace(r"\&", "&").replace(r"\_", "_")
+    expr = re.sub(r"\\[,;:!]", " ", expr)
+    expr = expr.replace(r"\ ", " ")
+
+    # 기호 / 그리스 문자 (긴 이름이 짧은 이름의 접두어여도 단어 경계로 안전하게 매칭)
+    for name, sym in _MATH_SYMBOLS.items():
+        expr = re.sub(r"\\" + name + r"(?![a-zA-Z])", sym, expr)
+
+    # 아래/위첨자 중괄호 제거: X_{abc} -> X_abc, X^{abc} -> X^abc
+    expr = re.sub(r"_\{([^{}]*)\}", r"_\1", expr)
+    expr = re.sub(r"\^\{([^{}]*)\}", r"^\1", expr)
+
+    # 남은 미지의 명령어: \foo -> foo (안전망)
+    expr = re.sub(r"\\([a-zA-Z]+)", r"\1", expr)
+
+    expr = expr.replace("{", "").replace("}", "")
+    expr = re.sub(r"\s+", " ", expr).strip()
+    return expr
+
+
+def preprocess_math(md_text: str) -> str:
+    """마크다운 안의 LaTeX 수식($...$, $$...$$)을 일반 텍스트로 치환.
+
+    - 블록 수식 $$...$$  →  '*[수식] ...*' 형태의 독립된 줄
+    - 인라인 수식 $...$  →  괄호/기호를 풀어쓴 평문으로 치환 후 문장에 그대로 삽입
+    코드 블록(```...```) 안의 내용은 건드리지 않는다.
+    """
+    def _block_repl(m):
+        return f"\n\n*[수식] {_latex_to_text(m.group(1))}*\n\n"
+
+    def _inline_repl(m):
+        return _latex_to_text(m.group(1))
+
+    def _convert(segment: str) -> str:
+        segment = re.sub(r"\$\$(.+?)\$\$", _block_repl, segment, flags=re.S)
+        segment = re.sub(r"\$([^\n$]+?)\$", _inline_repl, segment)
+        return segment
+
+    parts = re.split(r"(```.*?```)", md_text, flags=re.S)
+    return "".join(p if p.startswith("```") else _convert(p) for p in parts)
+
+
+# ══════════════════════════════════════════════════════════════
+# ASCII 아트 박스 제거 (Figure PNG와 중복되는 텍스트 다이어그램)
+# ══════════════════════════════════════════════════════════════
+
+_BOX_DRAW_CHARS = set("┌┐└┘├┤┬┴┼─│╔╗╚╝╠╣╦╩╬═║▲▼◄►")
+
+# 언어 태그가 없는(=파이썬 등 실제 코드가 아닌) 펜스 블록만 대상으로 함
+_FENCE_RE = re.compile(r"```[ \t]*\n(.*?)```\n*", re.S)
+_CAPTION_RE = re.compile(r"\*Figure\s+\d+[:.][^\n]*\*\n*")
+
+
+def remove_ascii_art_blocks(md_text: str) -> str:
+    """박스 드로잉 문자로 그려진 ASCII 아트 다이어그램을
+    'OO는 Figure N 참조' 텍스트로 대체 (실제 Figure PNG가 뒤에 삽입되므로 중복 제거).
+    언어 태그가 있는 코드 펜스(```python 등)는 건드리지 않는다.
+    """
+    result, pos = [], 0
+    for m in _FENCE_RE.finditer(md_text):
+        code = m.group(1)
+        result.append(md_text[pos:m.start()])
+        if any(ch in _BOX_DRAW_CHARS for ch in code):
+            cap_m = _CAPTION_RE.match(md_text, m.end())
+            fig_num_m = (re.search(r"Figure\s+(\d+)", cap_m.group(0)) if cap_m else None) \
+                or re.search(r"Figure\s+(\d+)", md_text[max(0, m.start() - 300):m.start()])
+            ref = f"시스템 아키텍처는 Figure {fig_num_m.group(1)} 참조" if fig_num_m else "아래 그림 참조"
+            result.append(ref + "\n\n")
+            pos = cap_m.end() if cap_m else m.end()
+        else:
+            result.append(m.group(0))
+            pos = m.end()
+    result.append(md_text[pos:])
+    return "".join(result)
+
+
+# ══════════════════════════════════════════════════════════════
 # DOCX 헬퍼
 # ══════════════════════════════════════════════════════════════
 
@@ -377,6 +584,9 @@ def to_docx(md_text: str, title: str, mode: str = "academic",
     from docx.shared import Pt, Cm, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
 
+    md_text = remove_ascii_art_blocks(md_text)
+    md_text = preprocess_math(md_text)
+
     theme    = _THEMES.get(mode, _THEMES["academic"])
     pr_color = RGBColor(*theme["primary"])
     lgt_hex  = theme["hex_light"]
@@ -629,6 +839,9 @@ def _pdf_code(pdf, code_text: str, font_name: str = "Helvetica"):
 def to_pdf(md_text: str, title: str, mode: str = "academic",
            figures: list = None) -> bytes:
     from fpdf import FPDF
+
+    md_text = remove_ascii_art_blocks(md_text)
+    md_text = preprocess_math(md_text)
 
     theme = _THEMES.get(mode, _THEMES["academic"])
     R, G, B = theme["primary"]
