@@ -38,20 +38,31 @@ class SearcherAgent(BaseAgent):
                     }]
                 )
             )
-            # 텍스트 블록 추출
-            text_parts = [
-                block.text for block in response.content
-                if hasattr(block, "text")
-            ]
+            # 텍스트 블록 + 실제 검색 출처(URL/제목) 추출
+            text_parts = []
+            sources = []
+            for block in response.content:
+                if hasattr(block, "text"):
+                    text_parts.append(block.text)
+                if getattr(block, "type", None) == "web_search_tool_result":
+                    items = getattr(block, "content", None) or []
+                    for item in items:
+                        url = getattr(item, "url", None) or (
+                            item.get("url") if isinstance(item, dict) else None)
+                        title = getattr(item, "title", None) or (
+                            item.get("title") if isinstance(item, dict) else None)
+                        if url:
+                            sources.append({"url": url, "title": title or url})
             content = "\n".join(text_parts)
             return {
                 "query":   query,
                 "content": content,
+                "sources": sources,
                 "status":  "success",
             }
         except Exception as e:
             logger.warning(f"검색 실패 [{query}]: {e}")
-            return {"query": query, "content": "", "status": "error", "error": str(e)}
+            return {"query": query, "content": "", "sources": [], "status": "error", "error": str(e)}
 
     async def search_parallel(self, queries: list[str], max_papers: int) -> list[dict]:
         """여러 쿼리를 병렬 실행, max_parallel 제한 적용"""

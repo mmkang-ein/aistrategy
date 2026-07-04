@@ -116,6 +116,50 @@ class FigureBuilder(BaseAgent):
                 pass
         return None
 
+    def _fit_box_label(self, fig, ax, text: str, box_w: float,
+                        fontsize: float = 7.5, min_fontsize: float = 5.5,
+                        max_lines: int = 3) -> tuple[str, float]:
+        """텍스트를 실제 렌더링 폭으로 측정해 box_w(축 데이터 좌표 단위) 안에
+        들어가도록 줄바꿈하고, 그래도 안 맞으면 폰트 크기를 줄인다.
+        (자르지 않고 항상 전체 텍스트를 보존)"""
+        words = text.split()
+        if not words:
+            return text, fontsize
+
+        fig.canvas.draw()
+        renderer = fig.canvas.get_renderer()
+        inv = ax.transData.inverted()
+        budget = box_w * 0.88  # 좌우 여백 고려
+
+        def _line_width(line: str, fs: float) -> float:
+            t = ax.text(0, 0, line, fontsize=fs, alpha=0)
+            bbox = t.get_window_extent(renderer=renderer)
+            (x0, _), (x1, _) = inv.transform(bbox.get_points())
+            t.remove()
+            return x1 - x0
+
+        def _wrap(n_lines: int) -> list[str]:
+            if n_lines <= 1:
+                return [" ".join(words)]
+            avg = len(words) / n_lines
+            lines, idx = [], 0
+            for k in range(n_lines):
+                take = round(avg * (k + 1)) - round(avg * k)
+                if idx + take > len(words):
+                    take = len(words) - idx
+                lines.append(" ".join(words[idx:idx + take]))
+                idx += take
+            return [l for l in lines if l]
+
+        for fs in (fontsize, fontsize - 0.5, fontsize - 1.0, min_fontsize):
+            for n_lines in range(1, max_lines + 1):
+                lines = _wrap(n_lines)
+                if all(_line_width(l, fs) <= budget for l in lines):
+                    return "\n".join(lines), fs
+
+        # 최후 수단: 최소 폰트 + 최대 줄 수로라도 전체 텍스트는 유지
+        return "\n".join(_wrap(max_lines)), min_fontsize
+
     # ── Figure 1: 아키텍처 다이어그램 ─────────────────────────────
 
     def _architecture_diagram(self, state: ResearchState) -> bytes | None:
@@ -131,7 +175,7 @@ class FigureBuilder(BaseAgent):
                 steps = [s.strip() for s in method.split(".") if len(s.strip()) > 3][:5]
             if not steps:
                 steps = ["Input Data", "Preprocessing", "Proposed Module", "Fusion Layer", "Output"]
-            steps = [s[:28] for s in steps[:6]]
+            steps = [s.strip() for s in steps[:6]]
 
             n = len(steps)
             fig, ax = plt.subplots(figsize=(10, 4.5))
@@ -158,14 +202,9 @@ class FigureBuilder(BaseAgent):
                 )
                 ax.add_patch(rect)
 
-                words = step.split()
-                if len(step) > 14 and len(words) > 1:
-                    mid = max(1, len(words) // 2)
-                    label = " ".join(words[:mid]) + "\n" + " ".join(words[mid:])
-                else:
-                    label = step
+                label, fs = self._fit_box_label(fig, ax, step, box_w, fontsize=7.5)
                 ax.text(x + box_w / 2, center_y, label,
-                        ha="center", va="center", fontsize=7.5,
+                        ha="center", va="center", fontsize=fs,
                         color="white", fontweight="bold", zorder=3)
 
                 if is_proposed:

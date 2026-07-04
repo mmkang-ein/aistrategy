@@ -118,14 +118,15 @@ _MATH_SYMBOLS = {
 
 def _apply_scripts(expr: str) -> str:
     """X^abc, X_abc 형태를 'X^(abc)', 'X_(abc)' 괄호 표기로 통일.
-    PDF 코어 폰트(Helvetica 등)가 유니코드 위/아래첨자 글자를
-    지원하지 않아 렌더링 시 깨질 위험이 있으므로, 폰트에 안전한
+    PDF 코어 폰트(Helvetica 등)와 임베딩 TTF 폰트(맑은 고딕 등) 모두
+    유니코드 위/아래첨자 글리프를 지원하지 않아 조용히 사라지는 문제가
+    실측(글리프 커버리지 검사)으로 확인되었으므로, 폰트에 안전한
     ASCII 괄호 표기만 사용한다."""
 
-    def _sup_repl(m):
+    def _sup_repl(m: re.Match) -> str:
         return f"^({m.group(1)})"
 
-    def _sub_repl(m):
+    def _sub_repl(m: re.Match) -> str:
         return f"_({m.group(1)})"
 
     expr = re.sub(r"\^([A-Za-z0-9+\-=]+)", _sup_repl, expr)
@@ -269,13 +270,22 @@ _BOX_DRAW_CHARS = set("┌┐└┘├┤┬┴┼─│╔╗╚╝╠╣╦╩
 # 언어 태그가 없는(=파이썬 등 실제 코드가 아닌) 펜스 블록만 대상으로 함
 _FENCE_RE = re.compile(r"```[ \t]*\n(.*?)```\n*", re.S)
 _CAPTION_RE = re.compile(r"\*Figure\s+\d+[:.][^\n]*\*\n*")
+_HANGUL_RE = re.compile(r"[가-힣]")
+
+
+def _is_korean_doc(md_text: str) -> bool:
+    """문서 앞부분 표본의 한글 비중으로 한국어 문서인지 판별
+    (영문 논문에도 고유명사 등으로 한글이 소량 섞일 수 있어 임계치를 둠)"""
+    sample = md_text[:2000]
+    return len(_HANGUL_RE.findall(sample)) > 20
 
 
 def remove_ascii_art_blocks(md_text: str) -> str:
     """박스 드로잉 문자로 그려진 ASCII 아트 다이어그램을
-    'OO는 Figure N 참조' 텍스트로 대체 (실제 Figure PNG가 뒤에 삽입되므로 중복 제거).
+    문서 언어에 맞는 'Figure N 참조' 텍스트로 대체 (실제 Figure PNG가 뒤에 삽입되므로 중복 제거).
     언어 태그가 있는 코드 펜스(```python 등)는 건드리지 않는다.
     """
+    is_kr = _is_korean_doc(md_text)
     result, pos = [], 0
     for m in _FENCE_RE.finditer(md_text):
         code = m.group(1)
@@ -284,7 +294,11 @@ def remove_ascii_art_blocks(md_text: str) -> str:
             cap_m = _CAPTION_RE.match(md_text, m.end())
             fig_num_m = (re.search(r"Figure\s+(\d+)", cap_m.group(0)) if cap_m else None) \
                 or re.search(r"Figure\s+(\d+)", md_text[max(0, m.start() - 300):m.start()])
-            ref = f"시스템 아키텍처는 Figure {fig_num_m.group(1)} 참조" if fig_num_m else "아래 그림 참조"
+            if fig_num_m:
+                ref = (f"시스템 아키텍처는 Figure {fig_num_m.group(1)} 참조" if is_kr
+                       else f"See Figure {fig_num_m.group(1)} for the system architecture.")
+            else:
+                ref = "아래 그림 참조" if is_kr else "See figure below."
             result.append(ref + "\n\n")
             pos = cap_m.end() if cap_m else m.end()
         else:

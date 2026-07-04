@@ -36,9 +36,15 @@ _ACADEMIC_INTRODUCTION = """
 핵심 질문: {key_questions}
 Abstract: {abstract}
 
+사용 가능한 참고문헌 목록 (인용 시 반드시 아래 번호 중에서만 [n] 형식으로 사용):
+{references}
+
 ## 1. Introduction 섹션을 작성하세요.
 ### 1.1 Motivation and Background
 (연구 배경, 문제의 중요성, 기존 한계 2-3단락)
+- 선행 연구를 언급할 때는 반드시 위 목록에 실제로 있는 번호로 [n] 형식으로 인용하세요.
+- "[CITATION]"처럼 실제 번호가 아닌 placeholder 텍스트는 절대 사용하지 마세요.
+- 목록에 적절한 근거가 없으면 인용 없이 서술하세요 (없는 근거를 지어내지 마세요).
 ### 1.2 Research Contributions
 아래 형식으로 3개 이상의 기여점 목록:
 - **Contribution 1**: ...
@@ -54,7 +60,13 @@ _ACADEMIC_RELATED = """
 {summaries}
 선정 아이디어: {idea_title}
 
+사용 가능한 참고문헌 목록 (인용 시 반드시 아래 번호 중에서만 [n] 형식으로 사용):
+{references}
+
 ## 2. Related Work 섹션을 작성하세요.
+- 각 선행 연구를 언급할 때는 반드시 위 목록에 실제로 있는 번호로 [n] 형식으로 인용하세요.
+- "[CITATION]"처럼 실제 번호가 아닌 placeholder 텍스트는 절대 사용하지 마세요.
+- 목록에 없는 연구는 지어내지 말고, 위 목록 범위 내에서만 구체적으로 비교·분석하세요.
 ### 2.1 [주요 연구 분야 1] (topic에 맞게 제목 설정)
 (3-5개 관련 연구 언급, 각 연구 비교 분석)
 ### 2.2 [주요 연구 분야 2]
@@ -259,6 +271,19 @@ class WriterAgent(BaseAgent):
 
     # ── 공통 헬퍼 ───────────────────────────────────────────────
 
+    def _numbered_refs(self, refs: list, limit: int = 15) -> str:
+        """참고문헌 리스트를 [n] 접두어로 통일해 프롬프트에 넣을 문자열로 변환.
+        LLM이 앞에 이미 붙인 번호는 제거하고, 실제 순서(state.references의 인덱스)로
+        다시 매겨 최종 References 섹션과 항상 일치하도록 한다."""
+        import re as _re
+        if not refs:
+            return "(참고문헌 없음 — 인용하지 말고 서술하세요)"
+        lines = []
+        for i, r in enumerate(refs[:limit], 1):
+            clean = _re.sub(r"^\[\d+\]\s*", "", r.strip())
+            lines.append(f"[{i}] {clean}")
+        return "\n".join(lines)
+
     def _findings(self, summaries: list, n: int = 6) -> str:
         lines = []
         for s in summaries[:n]:
@@ -337,6 +362,7 @@ class WriterAgent(BaseAgent):
                 strategy=plan.get("strategy", "")[:300],
                 key_questions=json.dumps(plan.get("key_questions", []), ensure_ascii=False),
                 abstract=sections["abstract"][:400],
+                references=self._numbered_refs(state.references),
             ), "Introduction", callback)
         sections["introduction"] = s
 
@@ -346,6 +372,7 @@ class WriterAgent(BaseAgent):
                 topic=state.topic,
                 summaries=self._findings(state.summaries, 8),
                 idea_title=idea_title,
+                references=self._numbered_refs(state.references),
             ), "Related Work", callback)
         sections["related_work"] = s
 
@@ -402,6 +429,16 @@ class WriterAgent(BaseAgent):
         doc += sections["experiments"] + "\n\n"
         doc += sections["discussion"] + "\n\n"
         doc += sections["conclusion"] + "\n\n"
+
+        # 안전장치: 지시를 따르지 않고 남은 [CITATION] placeholder가 있으면
+        # 실제 인용인 것처럼 보이는 가짜 표기를 방지하기 위해 명확히 표시하고 로그 남김
+        leftover = doc.count("[CITATION]")
+        if leftover:
+            self.logger.warning(
+                f"[CITATION] placeholder {leftover}건이 실제 번호로 대체되지 않고 남음 — "
+                f"[REF NEEDED]로 표시하여 출력함"
+            )
+            doc = doc.replace("[CITATION]", "[REF NEEDED]")
 
         # References
         if state.references:

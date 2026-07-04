@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## v3.1.3 (2026-07-04)
+
+### 핵심 목표: Figure 1 라벨 잘림 수정, 인용/참고문헌 실제 근거 강제, ASCII 대체문 다국어 지원
+
+#### Figure 1 아키텍처 다이어그램 라벨 잘림 수정 (agents/figure_builder.py)
+- `steps = [s[:28] for s in steps]`로 라벨을 강제 절단하던 것을 제거
+- `_fit_box_label()` 추가: matplotlib 렌더러로 실제 텍스트 폭을 측정해 박스 폭에 맞춰
+  단어 단위 줄바꿈(최대 3줄)하고, 그래도 안 맞으면 폰트 크기를 단계적으로 축소 —
+  텍스트를 자르지 않고 항상 전체 내용을 보존
+
+#### 인용·참고문헌 근거 강제 (agents/searcher.py, reference_builder.py, writer.py)
+- `searcher.py`: Anthropic 웹 검색 도구 응답에서 실제 검색 결과(URL/제목)를 `sources`로
+  추출 — 속성(attribute) 스타일/dict 스타일 응답 구조 모두 방어적으로 처리
+- `reference_builder.py`: 참고문헌 생성 프롬프트에 실제 title/url을 전달하고, 저자·연도·
+  권호 등 근거 없는 정보를 지어내지 않도록 규칙 강화 ("Various Authors"·임의 연도 금지,
+  근거 불명 시 "n.d." + 실제 title/URL 사용)
+- `writer.py`: Introduction/Related Work 프롬프트에 번호가 매겨진 실제 참고문헌 목록을
+  전달해 `[CITATION]` placeholder 대신 실제 `[n]` 번호로 인용하도록 지시. `_numbered_refs()`
+  추가로 목록 순서를 References 섹션과 항상 일치시킴. 그래도 남은 `[CITATION]`은
+  `[REF NEEDED]`로 명시 표시하고 경고 로그 남김 (실제 인용인 것처럼 보이는 것을 방지)
+
+#### ASCII 아트 대체문 다국어 지원 (utils/export.py)
+- `remove_ascii_art_blocks()`가 문서 언어(한글 비중 샘플링)에 따라 한국어 문서는
+  "Figure N 참조", 영문 문서는 "See Figure N for the system architecture."로 대체하도록 개선
+
+### 확인 필요 (다음 실제 파이프라인 실행 시)
+- searcher/reference_builder/writer 변경은 실제 웹 검색을 포함한 파이프라인 실행에서만
+  최종 검증 가능 — 본문 인용이 `[n]` 실제 번호로 나오는지, References에 실제 title/URL이
+  나오는지 다음 실행 시 확인 필요
+
 ## v3.1.2 (2026-07-04)
 
 ### 핵심 목표: PDF 표 잘림 수정 + 위/아래첨자 렌더링 안전성 개선

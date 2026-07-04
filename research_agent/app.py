@@ -404,7 +404,7 @@ st.markdown("""<style>
 # ─── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
-        '## 🔬 Research Agent &nbsp; <span class="version-badge">v3.1.2</span>',
+        '## 🔬 Research Agent &nbsp; <span class="version-badge">v3.1.3</span>',
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -693,7 +693,7 @@ if st.session_state.running and _log_q:
 # ═══════════════════════════════════════════════════════════════
 st.markdown(
     '## 🔬 Multi-Agent Research System &nbsp;'
-    '<span class="version-badge">v3.1.2</span>',
+    '<span class="version-badge">v3.1.3</span>',
     unsafe_allow_html=True,
 )
 

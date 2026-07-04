@@ -10,18 +10,20 @@ JSON만 반환하세요."""
 
 PROMPT = """다음 수집 자료들을 {style} 형식 참고문헌으로 변환하세요.
 
-수집 자료:
+수집 자료 (title/url은 실제 검색 결과에서 수집된 값입니다. 반드시 그대로 사용하세요):
 {sources}
 
 형식 예시:
 {example}
 
 규칙:
-- 출처 정보가 불완전하면 수집된 정보로 최대한 추정하세요.
-- 저자 불명 시 "Various Authors" 또는 기관명 사용
-- 연도 불명 시 수집 연도 2026 사용
-- URL이 있으면 반드시 포함
-- 중복 항목은 제거하세요
+- 저자명·학술지명·발행연도 등 실제로 주어지지 않은 정보는 절대로 지어내지 마세요.
+- 저자를 알 수 없으면 이름을 만들지 말고, 대신 실제 title을 그대로 참고문헌 항목의 제목으로 쓰고
+  "[Online]. Available: {{url}}" 형식으로 URL을 반드시 포함하세요.
+- 연도를 알 수 없으면 "n.d." (no date)로 표기하세요. 임의의 연도를 지어내지 마세요.
+- 권/호/페이지 번호 등 원문에 없는 숫자는 절대 만들어내지 마세요 — 없으면 생략하세요.
+- URL이 있으면 반드시 포함하세요.
+- 중복 항목(같은 url)은 제거하세요.
 
 JSON 형식:
 {{
@@ -56,7 +58,11 @@ class ReferenceBuilder(BaseAgent):
             query = s.get("query", queries[i - 1] if i <= len(queries) else "")
             title = sd.get("title") or query
             summary = sd.get("summary", "")[:120]
-            lines.append(f"[{i}] 제목/주제: {title} | 요약: {summary}")
+            sources = s.get("sources", [])
+            urls = ", ".join(src["url"] for src in sources[:3] if src.get("url")) or "(URL 없음)"
+            lines.append(
+                f"[{i}] title: {title} | url: {urls} | 요약: {summary}"
+            )
         return "\n".join(lines) if lines else "자료 없음"
 
     async def build(self, summaries: list, queries: list) -> list[str]:
