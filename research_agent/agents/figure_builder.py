@@ -90,14 +90,19 @@ class FigureBuilder(BaseAgent):
 
     # ── 파싱 헬퍼 ─────────────────────────────────────────────────
 
+    def _strip_md(self, s: str) -> str:
+        s = re.sub(r"\*\*(.*?)\*\*", r"\1", s)
+        s = re.sub(r"\*(.*?)\*", r"\1", s)
+        return s.strip()
+
     def _parse_table(self, md_table: str) -> tuple[list[str], list[list[str]]]:
         lines = [l.strip() for l in md_table.strip().split("\n") if l.strip()]
         if len(lines) < 3:
             return [], []
-        headers = [h.strip() for h in lines[0].split("|") if h.strip()]
+        headers = [self._strip_md(h) for h in lines[0].split("|") if h.strip()]
         rows = []
         for line in lines[2:]:
-            cells = [c.strip() for c in line.split("|") if c.strip()]
+            cells = [self._strip_md(c) for c in line.split("|") if c.strip()]
             if cells:
                 rows.append(cells)
         return headers, rows

@@ -26,6 +26,9 @@ init_db()
 # ─── Export 유틸 ──────────────────────────────────────────────
 from utils.export import to_docx, to_pdf
 
+# ─── 기존 논문 강화 유틸 ───────────────────────────────────────
+from tools.paper_enhancer import PaperEnhancer
+
 st.set_page_config(
     page_title="Research Agent",
     page_icon="🔬",
@@ -67,6 +70,13 @@ _DEFAULTS = {
     "similar_items": [],     # 유사 연구 경고 목록
     "figures": [],           # 생성된 그림 목록
     "section_progress": [],  # 완료된 섹션 목록
+    "enhance_file":    None,   # 기존 논문 강화: 선택된 파일 경로
+    "enhance_subdir":  None,   # "papers" | "reports"
+    "enhance_md":      None,   # 선택된 파일 원문
+    "enhance_running": False,
+    "enhance_progress": "",
+    "enhance_result":  None,   # {"md_text", "figures", "tables", "path"}
+    "enhance_error":   None,
 }
 for _k, _v in _DEFAULTS.items():
     if _k not in st.session_state:
@@ -114,6 +124,153 @@ def _run_pipeline(mode, topic, max_papers, max_revisions, verbose, log_q, result
         log_q.put(("done", None))
 
 
+# ─── Paper-enhancer thread ─────────────────────────────────────
+def _run_enhance(path, mode, log_q, result_q):
+    def _progress(msg):
+        log_q.put(("progress", msg))
+    try:
+        enhancer = PaperEnhancer(mode=mode)
+        result = asyncio.run(enhancer.enhance(path, progress_cb=_progress))
+        result_q.put({"ok": True, "result": result})
+    except Exception as e:
+        result_q.put({"ok": False, "error": str(e)})
+    finally:
+        log_q.put(("done", None))
+
+
+def _start_enhance(path, mode):
+    lq = queue.Queue()
+    rq = queue.Queue()
+    st.session_state._enh_log_q    = lq
+    st.session_state._enh_result_q = rq
+    st.session_state.enhance_running  = True
+    st.session_state.enhance_progress = "준비 중..."
+    st.session_state.enhance_error    = None
+    st.session_state.enhance_result   = None
+    threading.Thread(target=_run_enhance, args=(path, mode, lq, rq), daemon=True).start()
+    st.rerun()
+
+
+def _poll_enhance_queue():
+    lq = st.session_state.get("_enh_log_q")
+    rq = st.session_state.get("_enh_result_q")
+    if not lq:
+        return
+    while not lq.empty():
+        kind, payload = lq.get_nowait()
+        if kind == "progress":
+            st.session_state.enhance_progress = payload
+        elif kind == "done":
+            st.session_state.enhance_running = False
+            if rq and not rq.empty():
+                res = rq.get_nowait()
+                if res.get("ok"):
+                    st.session_state.enhance_result   = res["result"]
+                    st.session_state.enhance_progress = "완료"
+                else:
+                    st.session_state.enhance_error = res.get("error", "알 수 없는 오류")
+            break
+
+
+def _render_paper_enhancer():
+    _poll_enhance_queue()
+
+    path   = st.session_state.enhance_file
+    subdir = st.session_state.enhance_subdir
+    md     = st.session_state.enhance_md
+    mode   = "academic" if subdir == "papers" else "strategy"
+    meta   = _file_meta(path)
+
+    st.subheader("📄 기존 논문 강화")
+    st.caption(f"**{meta['name']}**  ·  {meta['date']}  ·  {meta['size']}")
+
+    if st.button("✖ 닫기", key="enh_close"):
+        st.session_state.enhance_file    = None
+        st.session_state.enhance_md      = None
+        st.session_state.enhance_result  = None
+        st.session_state.enhance_running = False
+        st.rerun()
+
+    result = st.session_state.enhance_result
+
+    if result is None:
+        enhance_btn = st.button(
+            "⏳ 강화 진행 중..." if st.session_state.enhance_running else "🎨 그림·테이블 추가",
+            disabled=st.session_state.enhance_running,
+            type="primary", use_container_width=True,
+        )
+        if enhance_btn and not st.session_state.enhance_running:
+            _start_enhance(path, mode)
+
+        if st.session_state.enhance_running:
+            st.info(f"🔄 {st.session_state.enhance_progress or '준비 중...'}")
+        if st.session_state.enhance_error:
+            st.error(f"❌ 강화 실패\n\n{st.session_state.enhance_error}")
+
+        st.divider()
+        st.markdown("**현재 내용 미리보기**")
+        tab1, tab2 = st.tabs(["📖 렌더링 보기", "📋 Markdown 원문"])
+        with tab1:
+            st.markdown(md)
+        with tab2:
+            st.text_area("원문", md, height=500, label_visibility="collapsed", key="enh_preview_src")
+
+        if st.session_state.enhance_running:
+            time.sleep(0.8)
+            st.rerun()
+
+    else:
+        st.success("✅ 그림·테이블 추가 완료!")
+        new_md  = result["md_text"]
+        figures = result.get("figures", [])
+        tables  = result.get("tables", {})
+
+        m1, m2 = st.columns(2)
+        m1.metric("추가된 그림", f"{len(figures)}개")
+        m2.metric("추가된 테이블", f"{len(tables)}개")
+
+        st.subheader("⬇️ 다운로드")
+        title = meta["name"].rsplit(".", 1)[0]
+        d1, d2, d3 = st.columns(3)
+        with d1:
+            st.download_button(
+                "📄 Markdown 다운로드",
+                data=new_md.encode("utf-8"),
+                file_name=path.name,
+                mime="text/markdown",
+                use_container_width=True,
+            )
+        with d2:
+            try:
+                st.download_button(
+                    "📝 Word (.docx) 다운로드",
+                    data=to_docx(new_md, title, mode=mode, figures=figures),
+                    file_name=f"{path.stem}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True,
+                )
+            except Exception as e:
+                st.warning(f"Word 생성 실패: {e}")
+        with d3:
+            try:
+                st.download_button(
+                    "🖨️ PDF 다운로드",
+                    data=to_pdf(new_md, title, mode=mode, figures=figures),
+                    file_name=f"{path.stem}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
+            except Exception as e:
+                st.warning(f"PDF 생성 실패: {e}")
+
+        st.divider()
+        tab1, tab2 = st.tabs(["📖 렌더링 보기", "📋 Markdown 원문"])
+        with tab1:
+            st.markdown(new_md)
+        with tab2:
+            st.text_area("원문", new_md, height=600, label_visibility="collapsed", key="enh_result_src")
+
+
 # ─── Past-file helpers ────────────────────────────────────────
 def _list_past_files():
     """outputs/papers + outputs/reports의 .md 파일 목록 (최신순)"""
@@ -140,6 +297,29 @@ def _friendly_name(subdir, path):
     badge = "📄" if subdir == "papers" else "📊"
     suffix = f"  ({ts})" if ts else ""
     return f"{badge} {label}{suffix}"
+
+def _file_meta(path):
+    """파일명 / 수정일 / 크기 정보"""
+    stat = path.stat()
+    size_kb = stat.st_size / 1024
+    size_str = f"{size_kb:.1f} KB" if size_kb < 1024 else f"{size_kb / 1024:.1f} MB"
+    date_str = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
+    return {"name": path.name, "date": date_str, "size": size_str}
+
+def _list_enhance_files():
+    """outputs/papers + outputs/reports의 .md 파일 목록 (최신순, 통합 정렬)"""
+    files = []
+    for subdir in ["papers", "reports"]:
+        d = ROOT / "outputs" / subdir
+        if d.exists():
+            files += [(subdir, f) for f in d.glob("*.md")]
+    files.sort(key=lambda x: x[1].stat().st_mtime, reverse=True)
+    return files
+
+def _enhance_label(subdir, path):
+    meta = _file_meta(path)
+    badge = "📄" if subdir == "papers" else "📊"
+    return f"{badge} {meta['name']}  ·  {meta['date']}  ·  {meta['size']}"
 
 # ─── Log parsers ──────────────────────────────────────────────
 def _detect_stage(text):
@@ -244,6 +424,7 @@ with st.sidebar:
     hist_label = "✖ 이력 닫기" if st.session_state.show_history else "📊 연구 이력 보기"
     if st.button(hist_label, use_container_width=True, disabled=st.session_state.running):
         st.session_state.show_history = not st.session_state.show_history
+        st.session_state.enhance_file = None
         st.rerun()
 
     # 사이드바 진행 상태
@@ -301,8 +482,9 @@ with st.sidebar:
         sel_path = paths[sel_idx]
 
         if sel_path and sel_path != st.session_state.view_file:
-            st.session_state.view_file = sel_path
-            st.session_state.view_md   = sel_path.read_text(encoding="utf-8")
+            st.session_state.view_file   = sel_path
+            st.session_state.view_md     = sel_path.read_text(encoding="utf-8")
+            st.session_state.enhance_file = None
             st.rerun()
         elif sel_path is None and st.session_state.view_file:
             st.session_state.view_file = None
@@ -314,6 +496,55 @@ with st.sidebar:
                 st.session_state.view_file = None
                 st.session_state.view_md   = None
                 st.rerun()
+
+    # ─── 기존 논문 강화 ───────────────────────────────────────
+    st.divider()
+    st.markdown("### 📄 기존 논문 강화")
+    enh_files = _list_enhance_files()
+    if not enh_files:
+        st.caption("강화할 파일 없음")
+    else:
+        enh_options = [("(선택하세요)", None, None)] + [
+            (sub, p, _enhance_label(sub, p)) for sub, p in enh_files
+        ]
+        enh_subdirs = [o[0] for o in enh_options]
+        enh_paths   = [o[1] for o in enh_options]
+        enh_labels  = [o[2] if o[2] else "(선택하세요)" for o in enh_options]
+
+        cur_enh_path = st.session_state.enhance_file
+        try:
+            cur_enh_idx = enh_paths.index(cur_enh_path) if cur_enh_path in enh_paths else 0
+        except ValueError:
+            cur_enh_idx = 0
+
+        enh_sel_idx = st.selectbox(
+            "강화할 파일 선택",
+            range(len(enh_labels)),
+            index=cur_enh_idx,
+            format_func=lambda i: enh_labels[i],
+            label_visibility="collapsed",
+            disabled=st.session_state.running or st.session_state.enhance_running,
+            key="enhance_file_select",
+        )
+        enh_sel_path   = enh_paths[enh_sel_idx]
+        enh_sel_subdir = enh_subdirs[enh_sel_idx]
+
+        if enh_sel_path and enh_sel_path != st.session_state.enhance_file:
+            st.session_state.enhance_file    = enh_sel_path
+            st.session_state.enhance_subdir  = enh_sel_subdir
+            st.session_state.enhance_md      = enh_sel_path.read_text(encoding="utf-8")
+            st.session_state.enhance_result  = None
+            st.session_state.enhance_running = False
+            st.session_state.enhance_error   = None
+            st.session_state.view_file       = None
+            st.session_state.view_md         = None
+            st.session_state.show_history    = False
+            st.rerun()
+        elif enh_sel_path is None and st.session_state.enhance_file and not st.session_state.enhance_running:
+            st.session_state.enhance_file   = None
+            st.session_state.enhance_md     = None
+            st.session_state.enhance_result = None
+            st.rerun()
 
 
 # ─── Start pipeline ───────────────────────────────────────────
@@ -345,6 +576,9 @@ if run_btn and topic.strip() and not st.session_state.running:
     st.session_state.show_history     = False
     st.session_state.figures          = []
     st.session_state.section_progress = []
+    st.session_state.enhance_file     = None
+    st.session_state.enhance_md       = None
+    st.session_state.enhance_result   = None
 
     threading.Thread(
         target=_run_pipeline,
@@ -421,6 +655,11 @@ st.markdown(
     '<span class="version-badge">v3.1.0</span>',
     unsafe_allow_html=True,
 )
+
+# ─── 기존 논문 강화 모드 (다른 화면보다 우선 표시) ────────────
+if st.session_state.enhance_file and not st.session_state.running:
+    _render_paper_enhancer()
+    st.stop()
 
 _no_active = (
     not st.session_state.running
