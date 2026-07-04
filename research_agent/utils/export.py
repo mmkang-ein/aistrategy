@@ -183,10 +183,10 @@ def _is_table_line(line: str) -> bool:
 def _parse_md_table(lines: list) -> tuple:
     if len(lines) < 3:
         return [], []
-    headers = [h.strip() for h in lines[0].split("|") if h.strip()]
+    headers = [_strip_inline(h) for h in lines[0].split("|") if h.strip()]
     rows = []
     for line in lines[2:]:
-        cells = [c.strip() for c in line.split("|") if c.strip()]
+        cells = [_strip_inline(c) for c in line.split("|") if c.strip()]
         if cells:
             rows.append(cells)
     return headers, rows
@@ -289,6 +289,20 @@ def _docx_figure(doc, png_bytes: bytes, caption: str):
     run.font.size = Pt(9)
 
 
+def _pdf_cell_safe(pdf, w, h, txt, border=0, fill=False, align="L"):
+    """cell() 렌더링 — 폰트가 지원 못하는 문자여도 배경색·테두리는 항상 유지"""
+    try:
+        pdf.cell(w, h, txt, border=border, fill=fill, align=align)
+        return
+    except Exception:
+        pass
+    try:
+        safe_txt = txt.encode("latin-1", errors="replace").decode("latin-1")
+        pdf.cell(w, h, safe_txt, border=border, fill=fill, align=align)
+    except Exception:
+        pdf.cell(w, h, "", border=border, fill=fill, align=align)
+
+
 def _pdf_table(pdf, headers: list, rows: list, R: int, G: int, B: int,
                font_name: str = "Helvetica",
                lgt: tuple = (232, 240, 255)):
@@ -299,18 +313,18 @@ def _pdf_table(pdf, headers: list, rows: list, R: int, G: int, B: int,
     avail  = pdf.w - pdf.l_margin - pdf.r_margin
     col_w  = avail / n_cols
 
+    header_style = "B" if font_name == "Helvetica" else ""
+
     pdf.set_fill_color(R, G, B)
     pdf.set_text_color(255, 255, 255)
-    pdf.set_font(font_name, size=8)
+    pdf.set_font(font_name, style=header_style, size=8.5)
     for i in range(n_cols):
         h = headers[i] if i < len(headers) else ""
         pdf.set_x(pdf.l_margin + i * col_w)
-        try:
-            pdf.cell(col_w, 6, h[:20], border=1, fill=True, align="C")
-        except Exception:
-            pass
+        _pdf_cell_safe(pdf, col_w, 6.5, h[:20], border=1, fill=True, align="C")
     pdf.ln()
 
+    pdf.set_font(font_name, size=8)
     for ri, row_data in enumerate(rows):
         if ri % 2 == 0:
             pdf.set_fill_color(*lgt)
@@ -320,10 +334,7 @@ def _pdf_table(pdf, headers: list, rows: list, R: int, G: int, B: int,
         for ci in range(n_cols):
             val = row_data[ci][:22] if ci < len(row_data) else ""
             pdf.set_x(pdf.l_margin + ci * col_w)
-            try:
-                pdf.cell(col_w, 5.5, val, border=1, fill=(ri % 2 == 0), align="C")
-            except Exception:
-                pass
+            _pdf_cell_safe(pdf, col_w, 5.5, val, border=1, fill=True, align="C")
         pdf.ln()
 
     pdf.ln(3)

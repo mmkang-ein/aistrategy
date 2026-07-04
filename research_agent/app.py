@@ -222,7 +222,7 @@ def _render_paper_enhancer():
     else:
         st.success("✅ 그림·테이블 추가 완료!")
         new_md  = result["md_text"]
-        figures = result.get("figures", [])
+        figures = result.get("figures") or _load_figures_from_md(new_md)
         tables  = result.get("tables", {})
 
         m1, m2 = st.columns(2)
@@ -320,6 +320,41 @@ def _enhance_label(subdir, path):
     meta = _file_meta(path)
     badge = "📄" if subdir == "papers" else "📊"
     return f"{badge} {meta['name']}  ·  {meta['date']}  ·  {meta['size']}"
+
+def _load_figures_from_md(md_text):
+    """'## Figures' 섹션의 '[Saved: `path`]' 참조에서 실제 PNG 바이트를 로드
+    (저장된 문서를 다시 열람/다운로드할 때 그림이 경로 텍스트로만 남지 않도록)"""
+    m = re.search(r"^##\s+Figures\s*$", md_text, re.M)
+    if not m:
+        return []
+    tail = md_text[m.end():]
+    m2 = re.search(r"^##\s+", tail, re.M)
+    section = tail[:m2.start()] if m2 else tail
+
+    figures = []
+    for block in re.split(r"^###\s+", section, flags=re.M)[1:]:
+        lines = block.strip().split("\n")
+        title = lines[0].strip()
+        cap_m  = re.search(r"^_(.+)_\s*$", block, re.M)
+        path_m = re.search(r"\[Saved:\s*`([^`]+)`\]", block)
+        if not path_m:
+            continue
+        fig_path = Path(path_m.group(1))
+        if not fig_path.is_absolute():
+            fig_path = ROOT / fig_path
+        if not fig_path.exists():
+            continue
+        try:
+            png_bytes = fig_path.read_bytes()
+        except Exception:
+            continue
+        figures.append({
+            "title":     title,
+            "caption":   cap_m.group(1) if cap_m else "",
+            "png_bytes": png_bytes,
+            "path":      str(fig_path),
+        })
+    return figures
 
 # ─── Log parsers ──────────────────────────────────────────────
 def _detect_stage(text):
@@ -753,6 +788,7 @@ if _no_active and st.session_state.view_md:
     _v_ts   = datetime.now().strftime("%Y%m%d_%H%M%S")
     # 파일명에서 모드 추출
     _v_mode = "strategy" if (_v_path and _v_path.name.startswith("strategy_")) else "academic"
+    _v_figures = _load_figures_from_md(_v_md)
 
     st.info(f"📂 **이전 결과 보기** — `{_v_path.name if _v_path else ''}`")
 
@@ -770,7 +806,7 @@ if _no_active and st.session_state.view_md:
         try:
             st.download_button(
                 "📝 Word (.docx) 다운로드",
-                data=to_docx(_v_md, _v_name, mode=_v_mode),
+                data=to_docx(_v_md, _v_name, mode=_v_mode, figures=_v_figures),
                 file_name=f"{_v_name}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 use_container_width=True,
@@ -781,7 +817,7 @@ if _no_active and st.session_state.view_md:
         try:
             st.download_button(
                 "🖨️ PDF 다운로드",
-                data=to_pdf(_v_md, _v_name, mode=_v_mode),
+                data=to_pdf(_v_md, _v_name, mode=_v_mode, figures=_v_figures),
                 file_name=f"{_v_name}.pdf",
                 mime="application/pdf",
                 use_container_width=True,
