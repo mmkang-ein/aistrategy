@@ -116,6 +116,23 @@ _MATH_SYMBOLS = {
 }
 
 
+def _apply_scripts(expr: str) -> str:
+    """X^abc, X_abc 형태를 'X^(abc)', 'X_(abc)' 괄호 표기로 통일.
+    PDF 코어 폰트(Helvetica 등)가 유니코드 위/아래첨자 글자를
+    지원하지 않아 렌더링 시 깨질 위험이 있으므로, 폰트에 안전한
+    ASCII 괄호 표기만 사용한다."""
+
+    def _sup_repl(m):
+        return f"^({m.group(1)})"
+
+    def _sub_repl(m):
+        return f"_({m.group(1)})"
+
+    expr = re.sub(r"\^([A-Za-z0-9+\-=]+)", _sup_repl, expr)
+    expr = re.sub(r"_([A-Za-z0-9+\-=]+)", _sub_repl, expr)
+    return expr
+
+
 def _brace_arg(s: str, i: int) -> tuple[str, int]:
     """s[i] == '{' 라고 가정하고 (중괄호 안 내용, 닫는 중괄호 다음 위치)를 반환"""
     depth = 0
@@ -213,6 +230,10 @@ def _latex_to_text(expr: str) -> str:
     expr = re.sub(r"\\([a-zA-Z]+)", r"\1", expr)
 
     expr = expr.replace("{", "").replace("}", "")
+
+    # 위/아래첨자를 유니코드로 변환 (불가능하면 괄호 표기로 폴백)
+    expr = _apply_scripts(expr)
+
     expr = re.sub(r"\s+", " ", expr).strip()
     return expr
 
@@ -510,43 +531,76 @@ def _pdf_cell_safe(pdf, w, h, txt, border=0, fill=False, align="L"):
         pdf.cell(w, h, "", border=border, fill=fill, align=align)
 
 
+def _pdf_wrap_text(pdf, text: str, max_width: float) -> list:
+    """단어 단위 줄바꿈: text를 max_width(mm, 현재 폰트 기준) 안에 들어가는 줄 리스트로 변환"""
+    text = text if text else ""
+    words = text.split(" ")
+    lines, cur = [], ""
+    for w in words:
+        trial = (cur + " " + w).strip() if cur else w
+        if not cur or pdf.get_string_width(trial) <= max_width:
+            cur = trial
+        else:
+            lines.append(cur)
+            cur = w
+    if cur or not lines:
+        lines.append(cur)
+    return lines
+
+
 def _pdf_table(pdf, headers: list, rows: list, R: int, G: int, B: int,
                font_name: str = "Helvetica",
                lgt: tuple = (232, 240, 255)):
-    """마크다운 테이블 → PDF 표 (테마 색상 적용)"""
+    """마크다운 테이블 → PDF 표 (테마 색상 적용, 컬럼 폭에 맞춰 자동 줄바꿈)"""
     if not headers or not rows:
         return
-    n_cols = max(len(headers), max((len(r) for r in rows), default=1))
-    avail  = pdf.w - pdf.l_margin - pdf.r_margin
-    col_w  = avail / n_cols
-
+    n_cols  = max(len(headers), max((len(r) for r in rows), default=1))
+    avail   = pdf.w - pdf.l_margin - pdf.r_margin
+    col_w   = avail / n_cols
+    x0      = pdf.l_margin
+    c_pad   = 2.0
+    text_w  = max(col_w - 2 * c_pad, 5)
+    line_h  = 4.2
     header_style = "B" if font_name == "Helvetica" else ""
 
-    pdf.set_fill_color(R, G, B)
-    pdf.set_text_color(255, 255, 255)
-    pdf.set_font(font_name, style=header_style, size=8.5)
-    for i in range(n_cols):
-        h = headers[i] if i < len(headers) else ""
-        pdf.set_x(pdf.l_margin + i * col_w)
-        _pdf_cell_safe(pdf, col_w, 6.5, h[:20], border=1, fill=True, align="C")
-    pdf.ln()
+    def _draw_row(cells_text, fill_rgb, text_rgb, style, size):
+        pdf.set_font(font_name, style=style, size=size)
+        wrapped = [_pdf_wrap_text(pdf, t, text_w) for t in cells_text]
+        n_lines = max(len(w) for w in wrapped)
+        row_h = n_lines * line_h + 2
 
-    pdf.set_font(font_name, size=8)
-    for ri, row_data in enumerate(rows):
-        if ri % 2 == 0:
-            pdf.set_fill_color(*lgt)
-        else:
-            pdf.set_fill_color(255, 255, 255)
-        pdf.set_text_color(0, 0, 0)
+        # 페이지 하단을 넘어가면 새 페이지로
+        if pdf.get_y() + row_h > pdf.h - pdf.b_margin:
+            pdf.add_page()
+
+        y0 = pdf.get_y()
+        pdf.set_fill_color(*fill_rgb)
+        pdf.set_text_color(*text_rgb)
+        pdf.set_draw_color(204, 204, 204)
         for ci in range(n_cols):
-            val = row_data[ci][:22] if ci < len(row_data) else ""
-            pdf.set_x(pdf.l_margin + ci * col_w)
-            _pdf_cell_safe(pdf, col_w, 5.5, val, border=1, fill=True, align="C")
-        pdf.ln()
+            x = x0 + ci * col_w
+            pdf.rect(x, y0, col_w, row_h, style="DF")
+            lines = wrapped[ci] if ci < len(wrapped) else [""]
+            top = y0 + (row_h - len(lines) * line_h) / 2
+            for li, line in enumerate(lines):
+                pdf.set_xy(x, top + li * line_h)
+                _pdf_cell_safe(pdf, col_w, line_h, line, border=0, fill=False, align="C")
+        pdf.set_xy(x0, y0 + row_h)
+
+    # 헤더 행
+    header_cells = [headers[i] if i < len(headers) else "" for i in range(n_cols)]
+    _draw_row(header_cells, (R, G, B), (255, 255, 255), header_style, 8.5)
+
+    # 데이터 행
+    for ri, row_data in enumerate(rows):
+        row_cells = [row_data[ci] if ci < len(row_data) else "" for ci in range(n_cols)]
+        fill_rgb = lgt if ri % 2 == 0 else (255, 255, 255)
+        _draw_row(row_cells, fill_rgb, (0, 0, 0), "", 8)
 
     pdf.ln(3)
     pdf.set_fill_color(255, 255, 255)
     pdf.set_text_color(0, 0, 0)
+    pdf.set_draw_color(0, 0, 0)
 
 
 def _pdf_figure(pdf, png_bytes: bytes, caption: str, font_name: str = "Helvetica"):
