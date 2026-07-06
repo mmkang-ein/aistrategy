@@ -194,11 +194,17 @@ def _render_paper_enhancer():
     result = st.session_state.enhance_result
 
     if result is None:
+        btn_label = "⏳ 강화 진행 중..." if st.session_state.enhance_running else (
+            "🧠 논문 강화 (섹션 보완 + 그림·표 추가)" if mode == "academic"
+            else "🎨 그림·테이블 추가"
+        )
         enhance_btn = st.button(
-            "⏳ 강화 진행 중..." if st.session_state.enhance_running else "🎨 그림·테이블 추가",
+            btn_label,
             disabled=st.session_state.enhance_running,
             type="primary", use_container_width=True,
         )
+        if mode != "academic":
+            st.caption("ℹ️ 섹션 완성도 보완은 현재 academic 모드에서만 지원됩니다 (이 파일은 strategy 모드).")
         if enhance_btn and not st.session_state.enhance_running:
             _start_enhance(path, mode)
 
@@ -220,10 +226,30 @@ def _render_paper_enhancer():
             st.rerun()
 
     else:
-        st.success("✅ 그림·테이블 추가 완료!")
+        st.success("✅ 논문 강화 완료!")
         new_md  = result["md_text"]
         figures = result.get("figures") or _load_figures_from_md(new_md)
         tables  = result.get("tables", {})
+        section_report = result.get("section_report") or []
+
+        if section_report:
+            generated = sum(1 for r in section_report if r["action"] == "generate")
+            expanded  = sum(1 for r in section_report if r["action"] == "expand")
+            kept_ok   = sum(1 for r in section_report if r["action"] == "ok")
+            failed    = sum(1 for r in section_report if r["action"] == "failed")
+
+            st.markdown("**섹션 완성도 검토 결과**")
+            s1, s2, s3, s4 = st.columns(4)
+            s1.metric("새로 생성", f"{generated}개")
+            s2.metric("확장 재작성", f"{expanded}개")
+            s3.metric("그대로 유지", f"{kept_ok}개")
+            s4.metric("실패", f"{failed}개")
+
+            action_icon = {"ok": "✅ 유지", "expand": "✏️ 확장", "generate": "🆕 생성", "failed": "⚠️ 실패"}
+            with st.expander("섹션별 상세 내역 보기"):
+                for r in section_report:
+                    st.write(f"- **{r['section']}** — {action_icon.get(r['action'], r['action'])} ({r['length']}자)")
+            st.divider()
 
         m1, m2 = st.columns(2)
         m1.metric("추가된 그림", f"{len(figures)}개")
