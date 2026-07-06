@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Callable, Optional
 from core.base_agent import BaseAgent
 from core.state import ResearchState
-from config.settings import MODEL_ORCHESTRATOR, MAX_TOKENS_SECTION
+from config.settings import MODEL_ORCHESTRATOR, MAX_TOKENS_SECTION, MAX_TOKENS_SECTION_RETRY_CAP
 
 SYSTEM_ACADEMIC = """당신은 컴퓨터비전·AI 분야 학술 논문 작성 전문가입니다 (NeurIPS/CVPR/ICML 기준).
 주어진 섹션만 Markdown으로 작성하세요. 헤딩(##)부터 시작하세요. JSON 없이 순수 텍스트만 반환."""
@@ -89,6 +89,9 @@ _ACADEMIC_METHODOLOGY = """
 (제안 방법론 상세 설명, 각 구성 요소 역할)
 ### 3.3 Algorithm / Architecture
 (핵심 알고리즘 또는 아키텍처 설명, 텍스트 다이어그램 포함)
+- 실제 프로그래밍 언어 소스 코드(Python 등)를 작성하지 마세요 — 코드는 별도 Appendix에
+  이미 첨부되어 있으므로 여기서 다시 작성하면 안 됩니다.
+- 알고리즘은 번호를 매긴 pseudocode 단계 또는 텍스트 박스 다이어그램으로만 표현하세요.
 ### 3.4 Training Strategy
 (학습 전략, 손실 함수, 최적화 방법)
 """
@@ -308,14 +311,36 @@ class WriterAgent(BaseAgent):
     async def _write_section(self, prompt: str, section_name: str,
                               callback: Optional[Callable] = None) -> str:
         self.print_status(f"  섹션 생성: {section_name}...")
-        content = await self.call_llm(
+        content, stop_reason = await self.call_llm(
             self.system, prompt,
             max_tokens=MAX_TOKENS_SECTION,
             temperature=0.65,
+            label=section_name,
+            return_meta=True,
         )
+        if stop_reason == "max_tokens":
+            retry_tokens = min(MAX_TOKENS_SECTION * 2, MAX_TOKENS_SECTION_RETRY_CAP)
+            self.logger.warning(
+                f"[{section_name}] 잘림 감지 — max_tokens={retry_tokens}로 1회 재시도"
+            )
+            content, stop_reason = await self.call_llm(
+                self.system, prompt,
+                max_tokens=retry_tokens,
+                temperature=0.65,
+                label=f"{section_name} (retry)",
+                return_meta=True,
+            )
+            if stop_reason == "max_tokens":
+                self.logger.warning(
+                    f"[{section_name}] 재시도에도 잘림 — 그대로 사용 (수동 확인 필요)"
+                )
+        if not content or len(content.strip()) < 30:
+            self.logger.warning(
+                f"[{section_name}] 내용이 비어있거나 매우 짧음 ({len(content or '')}자) — 확인 필요"
+            )
         if callback:
             callback(section_name, content)
-        self.print_status(f"  ✓ Section: {section_name}")
+        self.print_status(f"  ✓ Section: {section_name} ({len(content)}자)")
         return content
 
     def _enforce_conclusion(self, text: str) -> str:

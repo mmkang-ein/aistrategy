@@ -66,6 +66,22 @@ def _find_kr_font() -> str | None:
     return None
 
 
+# 체크마크류 기호는 Helvetica 코어 폰트와 임베딩 한글 TTF 폰트 모두 글리프를
+# 지원하지 않아 조용히 사라지는 경우가 확인되어(수식 첨자 문제와 동일 패턴),
+# 표/본문에서 항상 ASCII로 안전하게 치환한다.
+_SYMBOL_SAFE_MAP = {
+    "✓": "Yes", "✔": "Yes", "☑": "Yes",
+    "✗": "No", "✘": "No", "☒": "No",
+}
+
+
+def _normalize_symbols(text: str) -> str:
+    """PDF 폰트가 지원하지 않는 체크마크류 기호를 ASCII 안전 표기로 통일"""
+    for sym, safe in _SYMBOL_SAFE_MAP.items():
+        text = text.replace(sym, safe)
+    return text
+
+
 # ══════════════════════════════════════════════════════════════
 # LaTeX 수식 → 일반 텍스트 전처리
 # ($...$, $$...$$ 를 Word/PDF 변환 전에 읽을 수 있는 평문으로 치환)
@@ -654,6 +670,7 @@ def to_docx(md_text: str, title: str, mode: str = "academic",
 
     md_text = remove_ascii_art_blocks(md_text)
     md_text = preprocess_math(md_text)
+    md_text = _normalize_symbols(md_text)
 
     theme    = _THEMES.get(mode, _THEMES["academic"])
     pr_color = RGBColor(*theme["primary"])
@@ -881,19 +898,25 @@ def _pdf_safe(pdf, txt: str, line_h: float = 6):
 
 
 def _pdf_code(pdf, code_text: str, font_name: str = "Helvetica"):
+    """코드 블록 렌더링. multi_cell 기본(justify) 정렬은 줄바꿈 시 선행 공백을
+    없애버려 들여쓰기가 사라지므로, 선행 공백을 non-breaking space로 바꾸고
+    align='L'로 강제해 들여쓰기를 보존한다."""
     pdf.set_fill_color(243, 244, 246)
     pdf.ln(1)
     avail = pdf.w - pdf.l_margin - pdf.r_margin
     for ln in (code_text.split("\n") or [""]):
         pdf.set_font(font_name, size=8)  # 한국어 지원 폰트 사용
         pdf.set_x(pdf.l_margin)
+        stripped = (ln or "").lstrip(" ")
+        n_indent = len(ln or "") - len(stripped)
+        safe_ln = (" " * n_indent) + stripped if n_indent else (ln or " ")
         try:
-            pdf.multi_cell(avail, 4.5, ln or " ", fill=True)
+            pdf.multi_cell(avail, 4.5, safe_ln or " ", fill=True, align="L")
         except Exception:
             try:
                 pdf.multi_cell(avail, 4.5,
-                               (ln or " ").encode("latin-1", errors="replace").decode("latin-1"),
-                               fill=True)
+                               safe_ln.encode("latin-1", errors="replace").decode("latin-1"),
+                               fill=True, align="L")
             except Exception:
                 pass
     pdf.ln(2)
@@ -910,6 +933,7 @@ def to_pdf(md_text: str, title: str, mode: str = "academic",
 
     md_text = remove_ascii_art_blocks(md_text)
     md_text = preprocess_math(md_text)
+    md_text = _normalize_symbols(md_text)
 
     theme = _THEMES.get(mode, _THEMES["academic"])
     R, G, B = theme["primary"]

@@ -4,7 +4,7 @@
 import json
 from core.base_agent import BaseAgent
 from core.state import ResearchState
-from config.settings import MODEL_ORCHESTRATOR, MODEL_WORKER
+from config.settings import MODEL_ORCHESTRATOR, MODEL_WORKER, MAX_TOKENS_WRITER, MAX_TOKENS_SECTION_RETRY_CAP
 
 SYSTEM_DESIGN  = "당신은 연구 실험 설계 전문가입니다. JSON만 반환하세요."
 SYSTEM_CODE    = "당신은 Python 연구 코드 전문가입니다. 실행 가능한 코드만 반환하세요 (주석 포함)."
@@ -92,7 +92,24 @@ class ExecutorAgent(BaseAgent):
             topic=state.topic,
             experiment=json.dumps(state.experiment, ensure_ascii=False)
         )
-        code = await self.call_llm(SYSTEM_CODE, prompt, temperature=0.3)
+        # 시뮬레이션/분석 코드는 수백 줄이 되는 경우가 많아 기본 토큰 상한(4096)으로는
+        # 자주 잘림 — 명시적으로 넉넉한 상한을 주고, 그래도 잘리면 한 번 더 시도한다.
+        code, stop_reason = await self.call_llm(
+            SYSTEM_CODE, prompt, temperature=0.3,
+            max_tokens=MAX_TOKENS_WRITER, label="code_snippet", return_meta=True,
+        )
+        if stop_reason == "max_tokens":
+            retry_tokens = MAX_TOKENS_SECTION_RETRY_CAP + MAX_TOKENS_WRITER
+            self.logger.warning(
+                f"코드 생성이 max_tokens={MAX_TOKENS_WRITER}에서 잘림 — "
+                f"max_tokens={retry_tokens}로 1회 재시도"
+            )
+            code, stop_reason = await self.call_llm(
+                SYSTEM_CODE, prompt, temperature=0.3,
+                max_tokens=retry_tokens, label="code_snippet (retry)", return_meta=True,
+            )
+            if stop_reason == "max_tokens":
+                self.logger.warning("코드 생성이 재시도에도 잘림 — 그대로 사용 (수동 확인 필요)")
         # 마크다운 펜스 제거
         if "```python" in code:
             code = code.split("```python")[1].split("```")[0].strip()

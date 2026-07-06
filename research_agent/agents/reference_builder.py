@@ -68,6 +68,7 @@ class ReferenceBuilder(BaseAgent):
     async def build(self, summaries: list, queries: list) -> list[str]:
         self.print_status(f"참고문헌 생성 중 ({self.style} 형식, {len(summaries)}건)...")
         if not summaries:
+            self.logger.warning("수집된 summaries가 없어 참고문헌을 생성하지 못함 (0건)")
             return []
         sources = self._format_sources(summaries, queries)
         prompt = PROMPT.format(
@@ -78,5 +79,9 @@ class ReferenceBuilder(BaseAgent):
         response = await self.call_llm(SYSTEM, prompt, temperature=0.2)
         data = self.parse_json(response)
         refs = data.get("references", [])
+        if not refs:
+            self.logger.warning(
+                "참고문헌이 0건 생성됨 — LLM 응답 JSON 파싱 실패 또는 빈 결과일 가능성 있음"
+            )
         self.logger.info(f"참고문헌 {len(refs)}건 생성 완료")
         return refs

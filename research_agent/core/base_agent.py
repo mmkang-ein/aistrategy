@@ -30,8 +30,13 @@ class BaseAgent:
         user:   str,
         max_tokens: int = MAX_TOKENS_DEFAULT,
         temperature: float = 0.7,
-    ) -> str:
-        """Claude API 호출 → 텍스트 반환"""
+        label: str = None,
+        return_meta: bool = False,
+    ):
+        """Claude API 호출 → 텍스트 반환.
+        return_meta=True면 (text, stop_reason) 튜플을 반환한다.
+        stop_reason == 'max_tokens'면 응답이 중간에 잘렸다는 뜻이므로,
+        verbose 여부와 무관하게 항상 경고 로그를 남긴다 (내용 손실을 조용히 넘기지 않기 위함)."""
         if self.verbose:
             self.logger.debug(f"[{self.name}] 호출 | model={self.model} | prompt[:80]={user[:80]}")
 
@@ -49,8 +54,17 @@ class BaseAgent:
             )
         )
         text = response.content[0].text
+        stop_reason = getattr(response, "stop_reason", None)
+        tag = f" ({label})" if label else ""
+        if stop_reason == "max_tokens":
+            self.logger.warning(
+                f"[{self.name}]{tag} 응답이 max_tokens={max_tokens}에서 잘림 "
+                f"(stop_reason=max_tokens) — 내용이 중간에 끊겼을 수 있음"
+            )
         if self.verbose:
-            self.logger.debug(f"[{self.name}] 응답 길이: {len(text)}자")
+            self.logger.debug(f"[{self.name}]{tag} 응답 길이: {len(text)}자 | stop_reason={stop_reason}")
+        if return_meta:
+            return text, stop_reason
         return text
 
     def parse_json(self, text: str) -> dict | list:

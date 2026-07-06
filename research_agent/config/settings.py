@@ -20,6 +20,7 @@ MODEL_WORKER       = "claude-haiku-4-5-20251001"  # Lit Agent, Summarizer (병�
 MAX_TOKENS_DEFAULT  = 4096
 MAX_TOKENS_WRITER   = 8192
 MAX_TOKENS_SECTION  = 3000   # 섹션별 분할 생성 시 토큰 상한
+MAX_TOKENS_SECTION_RETRY_CAP = 6000   # 잘림(stop_reason=max_tokens) 감지 시 재시도 상한
 
 
 # ─── 검색 설정 ────────────────────────────────────────────────
