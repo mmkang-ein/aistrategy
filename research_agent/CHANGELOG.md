@@ -1,5 +1,79 @@
 # CHANGELOG
 
+## v3.1.8 (2026-07-06)
+
+### 핵심 목표: 다중 URL 검색 결과에서 참고문헌 제목 반복 버그 수정
+
+#### 참고문헌 제목-URL 매핑 수정 (agents/reference_builder.py)
+- `_format_sources()`가 검색 쿼리 하나에 묶인 여러 URL(최대 3개)에 동일한 제목
+  (요약 단계의 단일 문서 제목 또는 원본 쿼리 문자열)을 그대로 붙여 프롬프트에 전달하던
+  문제 수정 — 서로 다른 실제 문서인데도 참고문헌에 같은 제목이 반복 노출됨
+- 이제 소스(`sources`)마다 실제로 수집된 개별 `title`을 사용해 URL 1개당 줄 1개로 전달
+  (최대 20개), 개별 제목이 없으면 요약/쿼리 제목으로 폴백
+- `_dedupe_by_url()` 추가: 모델이 프롬프트의 중복 제거 지시를 놓쳐 같은 URL이 두 번
+  나오는 경우를 대비한 안전장치 — 완전히 동일한 URL의 두 번째 이후 항목 제거
+- 실제 LLM 호출로 검증: 쿼리 3개·소스 8개(QoS 논문형 다중 소스 검색 형태)로
+  참고문헌을 재생성해 8건 전부 서로 다른 제목으로 반복 없이 생성됨을 확인
+
+## v3.1.7 (2026-07-06)
+
+### 핵심 목표: 논문 강화(섹션 보완) 결과를 대시보드에 노출
+
+#### 기존 논문 강화 UI 개선 (app.py)
+- academic 모드에서 버튼 라벨을 "🎨 그림·테이블 추가" → "🧠 논문 강화 (섹션 보완 +
+  그림·표 추가)"로 변경해 실제 동작(섹션 보완 포함)을 정확히 반영, strategy 모드에는
+  섹션 보완이 academic 전용임을 안내하는 캡션 추가
+- 강화 완료 화면에 **섹션 완성도 검토 결과** 카드 추가 — 새로 생성/확장 재작성/그대로
+  유지/실패 건수를 지표로 표시하고, `섹션별 상세 내역 보기` 펼치기에서 섹션별 처리
+  결과(`section_report`)를 개별 확인 가능
+- Streamlit 대시보드를 실제로 띄우고 Playwright로 조작해 버튼 라벨·결과 카드·다운로드
+  버튼(Markdown/Word/PDF)이 모두 정상 렌더링됨을 확인
+
+## v3.1.6 (2026-07-06)
+
+### 핵심 목표: 논문 강화 시 섹션 보완 기능 추가 + PDF/Word 렌더링 데이터 유실 버그 수정
+
+#### 논문 섹션 완성도 검토·보완 (tools/paper_enhancer.py)
+- `SectionReviewer` 신규 추가: 기존 `.md` 논문에서 표준 섹션(Abstract~Conclusion)이
+  빠져 있으면 새로 생성하고, 너무 짧은 섹션은 기존 내용을 유지하며 확장 재작성
+  (`review_and_fill()`), canonical 순서를 유지하며 삽입 위치 자동 결정
+- Writer/Executor와 동일한 잘림(`stop_reason=max_tokens`) 감지 후 재시도 로직 적용,
+  빈 결과·실패 섹션은 경고 로그와 함께 건너뜀
+- 그림·테이블 생성 단계를 각각 `try/except`로 감싸 한 단계 실패가 전체 강화를
+  중단시키지 않도록 방어
+- `PaperEnhancer.enhance()`가 `section_report`를 결과에 포함해 반환
+
+#### PDF/Word 렌더링 치명적 데이터 유실 버그 수정 (utils/export.py)
+- LLM이 생성한 ASCII 다이어그램 등에서 코드 펜스(```)가 닫히지 않은 채 다음
+  섹션으로 넘어가면, `remove_ascii_art_blocks()`의 정규식이 그 사이에 있는 아무
+  다음 펜스(예: 언어 태그가 붙은 Appendix 코드 펜스)까지를 통째로 하나의 코드
+  블록으로 묶어 그 사이 실제 섹션 전체(Experiments/Discussion/Conclusion 등)를
+  삭제해버리는 버그 확인 (실제 QoS 논문에서 문서의 절반 가까이 유실 재현)
+- `_auto_close_unclosed_fences()` 추가: 펜스가 열린 채로 마크다운 헤딩을 만나면
+  그 직전에 닫는 펜스를 강제 삽입, 문서 끝까지 열려 있으면 끝에서 닫음 —
+  `to_pdf()`/`to_docx()` 맨 앞, 다른 전처리보다 먼저 적용
+- 실제 QoS 논문으로 재현 후 수정 확인: PyMuPDF/python-docx로 텍스트 추출해
+  Experiments/Discussion/Conclusion/References 전 섹션이 정상 렌더링됨을 검증
+
+## v3.1.4 (2026-07-06)
+
+### 핵심 목표: 응답 잘림(max_tokens) 감지·재시도, 기호/들여쓰기 렌더링 안전성 개선
+
+#### 응답 잘림 감지 및 재시도 (core/base_agent.py, agents/writer.py, agents/executor.py)
+- `call_llm()`에 `label`·`return_meta` 파라미터 추가 — `return_meta=True`면
+  `(text, stop_reason)` 튜플 반환, `stop_reason == "max_tokens"`이면 verbose 여부와
+  무관하게 항상 경고 로그 남김 (기본 동작은 기존과 동일해 기존 호출부는 영향 없음)
+- Writer 섹션 생성·Executor 분석 코드 생성이 잘림을 감지하면 더 큰 토큰 상한
+  (`MAX_TOKENS_SECTION_RETRY_CAP` 신규 설정값)으로 1회 재시도, 재시도에도 잘리면
+  경고 로그와 함께 그대로 사용
+- 참고문헌 생성 결과가 0건이면 경고 로그 추가 (agents/reference_builder.py)
+
+#### 기호·들여쓰기 렌더링 안전성 (utils/export.py)
+- `_normalize_symbols()` 추가: PDF 코어 폰트·임베딩 한글 폰트 모두 지원하지 않는
+  체크마크류 기호(✓/✗ 등)를 ASCII 안전 표기(Yes/No)로 통일
+- `_pdf_code()`가 `multi_cell` 기본 정렬(justify) 때문에 코드 블록 줄바꿈 시 들여쓰기가
+  사라지던 문제 수정 — 선행 공백 보존 + `align="L"` 강제
+
 ## v3.1.3 (2026-07-04)
 
 ### 핵심 목표: Figure 1 라벨 잘림 수정, 인용/참고문헌 실제 근거 강제, ASCII 대체문 다국어 지원
