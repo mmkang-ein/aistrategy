@@ -296,6 +296,35 @@ def _is_korean_doc(md_text: str) -> bool:
     return len(_HANGUL_RE.findall(sample)) > 20
 
 
+_HEADING_LINE_RE = re.compile(r"^#{1,6}\s")
+
+
+def _auto_close_unclosed_fences(md_text: str) -> str:
+    """코드 펜스(```)가 닫히지 않은 채 다음 마크다운 헤딩으로 넘어가거나 문서
+    끝까지 이어지는 경우를 방지한다.
+
+    LLM이 생성한 ASCII 다이어그램 등에서 닫는 ```가 누락되면, 이후 나오는 임의의
+    다른 ``` (예: 다른 언어 태그가 붙은 코드 펜스)까지를 전부 "코드 내용"으로
+    묶어버려 remove_ascii_art_blocks의 정규식이 그 사이의 실제 섹션 전체를
+    삭제해 버리는 등 심각한 문서 손상으로 이어진 사례가 실측 확인됨. 각 줄을
+    순회하며 펜스 상태를 추적하다가, 펜스가 열린 채로 헤딩 줄을 만나면 그 직전에
+    닫는 ```를 강제로 삽입하고, 문서 끝까지 열려 있으면 끝에 닫는 펜스를 추가한다.
+    """
+    lines = md_text.split("\n")
+    out = []
+    in_fence = False
+    for line in lines:
+        if in_fence and _HEADING_LINE_RE.match(line):
+            out.append("```")
+            in_fence = False
+        out.append(line)
+        if line.startswith("```"):
+            in_fence = not in_fence
+    if in_fence:
+        out.append("```")
+    return "\n".join(out)
+
+
 def remove_ascii_art_blocks(md_text: str) -> str:
     """박스 드로잉 문자로 그려진 ASCII 아트 다이어그램을
     문서 언어에 맞는 'Figure N 참조' 텍스트로 대체 (실제 Figure PNG가 뒤에 삽입되므로 중복 제거).
@@ -668,6 +697,7 @@ def to_docx(md_text: str, title: str, mode: str = "academic",
     from docx.shared import Pt, Cm, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
 
+    md_text = _auto_close_unclosed_fences(md_text)
     md_text = remove_ascii_art_blocks(md_text)
     md_text = preprocess_math(md_text)
     md_text = _normalize_symbols(md_text)
@@ -931,6 +961,7 @@ def to_pdf(md_text: str, title: str, mode: str = "academic",
            figures: list = None) -> bytes:
     from fpdf import FPDF
 
+    md_text = _auto_close_unclosed_fences(md_text)
     md_text = remove_ascii_art_blocks(md_text)
     md_text = preprocess_math(md_text)
     md_text = _normalize_symbols(md_text)
